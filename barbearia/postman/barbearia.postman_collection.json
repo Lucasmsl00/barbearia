@@ -1,0 +1,72 @@
+{
+  "info": {
+    "name": "Barbearia API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "barbeiroId", "value": "3f3554c1-d717-4404-8c32-62a7ca2aeaeb" },
+    { "key": "servicoId", "value": "d0c75e3c-2c34-48ff-a47a-51a71e85d6bf" },
+    { "key": "agendamentoId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Horários disponíveis",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/agendamentos/horarios-disponiveis?barbeiroId={{barbeiroId}}&servicoId={{servicoId}}&data=2026-08-05",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "agendamentos", "horarios-disponiveis"],
+          "query": [
+            { "key": "barbeiroId", "value": "{{barbeiroId}}" },
+            { "key": "servicoId", "value": "{{servicoId}}" },
+            { "key": "data", "value": "2026-08-05" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Criar agendamento",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/api/agendamentos",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "agendamentos"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nomeCliente\": \"Cliente Teste\",\n  \"telefoneCliente\": \"(11) 91234-5678\",\n  \"barbeiroId\": \"{{barbeiroId}}\",\n  \"servicoId\": \"{{servicoId}}\",\n  \"data\": \"2026-08-05\",\n  \"horaInicio\": \"11:00:00\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Listar agendamentos do barbeiro",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/agendamentos/atendimentos?barbeiroId={{barbeiroId}}&data=2026-08-05",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "agendamentos", "atendimentos"],
+          "query": [
+            { "key": "barbeiroId", "value": "{{barbeiroId}}" },
+            { "key": "data", "value": "2026-08-05" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Cancelar agendamento",
+      "request": {
+        "method": "PATCH",
+        "url": {
+          "raw": "{{baseUrl}}/api/agendamentos/{{agendamentoId}}/cancelar",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "agendamentos", "{{agendamentoId}}", "cancelar"]
+        }
+      }
+    }
+  ]
+}

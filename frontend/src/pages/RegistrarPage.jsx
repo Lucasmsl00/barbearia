@@ -1,0 +1,76 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../api/client";
+import { useAuth } from "../context/AuthContext";
+
+export default function RegistrarPage() {
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setErro("");
+    setCarregando(true);
+    try {
+      await api.post("/api/barbeiros/registrar", { nome, email, senha });
+      await login(email, senha);
+      navigate("/admin");
+    } catch (err) {
+      setErro(err.response?.data?.message || "Não foi possível cadastrar");
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-sm">
+      <h1 className="text-2xl font-semibold">Cadastro do barbeiro</h1>
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-neutral-700">Nome</label>
+          <input
+            type="text"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            required
+            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-neutral-700">E-mail</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-neutral-700">Senha</label>
+          <input
+            type="password"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            minLength={6}
+            required
+            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+        </div>
+        {erro && <p className="text-sm text-red-600">{erro}</p>}
+        <button
+          type="submit"
+          disabled={carregando}
+          className="w-full rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-40"
+        >
+          {carregando ? "Cadastrando..." : "Cadastrar"}
+        </button>
+      </form>
+    </div>
+  );
+}

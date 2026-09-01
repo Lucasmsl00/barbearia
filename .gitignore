@@ -1,0 +1,18 @@
+# Backend (Maven/Java)
+barbearia/target/
+barbearia/.mvn/wrapper/maven-wrapper.jar
+barbearia/.idea/
+*.iml
+
+# Frontend (Node/Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

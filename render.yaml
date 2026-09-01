@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: barbearia-backend
+    runtime: docker
+    dockerfilePath: ./barbearia/Dockerfile
+    dockerContext: ./barbearia
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
