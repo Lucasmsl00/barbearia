@@ -165,6 +165,22 @@ public class AgendamentoService {
         return agendamentoRepository.save(novoAgendamento);
     }
 
+    @Transactional
+    public Agendamento concluirAgendamento(UUID id, UUID barbeiroAutenticadoId) {
+        Agendamento agendamento = agendamentoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
+
+        verificarDono(agendamento, barbeiroAutenticadoId);
+
+        if (agendamento.getStatus() == StatusAgendamento.CANCELADO || agendamento.getStatus() == StatusAgendamento.REMARCADO) {
+            throw new BusinessException("Não é possível concluir um agendamento cancelado ou remarcado");
+        }
+
+        agendamento.setStatus(StatusAgendamento.CONCLUIDO);
+
+        return agendamentoRepository.save(agendamento);
+    }
+
     private void verificarDono(Agendamento agendamento, UUID barbeiroAutenticadoId) {
         if (!agendamento.getBarbeiro().getId().equals(barbeiroAutenticadoId)) {
             throw new AccessDeniedException("Este agendamento não pertence a este barbeiro");

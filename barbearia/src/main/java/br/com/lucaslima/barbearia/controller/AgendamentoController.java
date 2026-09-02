@@ -58,6 +58,13 @@ public class AgendamentoController {
         return ResponseEntity.ok(new AgendamentoResponseDTO(agendamento));
     }
 
+    @PatchMapping("/{id}/concluir")
+    public ResponseEntity<AgendamentoResponseDTO> concluirAgendamento(@PathVariable UUID id) {
+        UUID barbeiroId = currentUserService.getBarbeiroAutenticado().getId();
+        Agendamento agendamento = agendamentoService.concluirAgendamento(id, barbeiroId);
+        return ResponseEntity.ok(new AgendamentoResponseDTO(agendamento));
+    }
+
     @PatchMapping("/{id}/remarcar")
     public ResponseEntity<AgendamentoResponseDTO> remarcarAgendamento(
             @PathVariable UUID id,

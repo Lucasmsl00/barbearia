@@ -123,6 +123,11 @@ function AbaAgenda() {
     carregar();
   }
 
+  async function concluir(id) {
+    await api.patch(`/api/agendamentos/${id}/concluir`);
+    carregar();
+  }
+
   async function confirmarRemarcacao(id) {
     setErro("");
     try {
@@ -172,6 +177,12 @@ function AbaAgenda() {
 
             {(ag.status === "PENDENTE" || ag.status === "CONFIRMADO") && (
               <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => concluir(ag.id)}
+                  className="rounded-md border border-green-300 px-3 py-1 text-xs text-green-700 hover:bg-green-50"
+                >
+                  Concluir
+                </button>
                 <button
                   onClick={() => cancelar(ag.id)}
                   className="rounded-md border border-red-300 px-3 py-1 text-xs text-red-700 hover:bg-red-50"
@@ -452,6 +463,190 @@ function LinhaHorario({ label, dia, existente, onSalvar }) {
   );
 }
 
+function inicioSemanaISO() {
+  const hoje = new Date();
+  const offset = hoje.getTimezoneOffset();
+  const local = new Date(hoje.getTime() - offset * 60000);
+  local.setUTCDate(local.getUTCDate() - local.getUTCDay());
+  return local.toISOString().slice(0, 10);
+}
+
+function fimSemanaISO() {
+  const hoje = new Date();
+  const offset = hoje.getTimezoneOffset();
+  const local = new Date(hoje.getTime() - offset * 60000);
+  local.setUTCDate(local.getUTCDate() + (6 - local.getUTCDay()));
+  return local.toISOString().slice(0, 10);
+}
+
+function inicioMesISO() {
+  const hoje = new Date();
+  return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
+function fimMesISO() {
+  const hoje = new Date();
+  const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
+  return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+}
+
+const STATUS_LABEL = {
+  PENDENTE: "Pendente",
+  CONFIRMADO: "Confirmado",
+  CANCELADO: "Cancelado",
+  CONCLUIDO: "Concluído",
+  REMARCADO: "Remarcado",
+};
+
+const STATUS_BARRA = {
+  PENDENTE: "bg-yellow-400",
+  CONFIRMADO: "bg-blue-400",
+  CANCELADO: "bg-red-400",
+  CONCLUIDO: "bg-green-500",
+  REMARCADO: "bg-neutral-400",
+};
+
+function AbaRelatorios() {
+  const [periodo, setPeriodo] = useState("semana");
+  const [dataInicio, setDataInicio] = useState(inicioSemanaISO());
+  const [dataFim, setDataFim] = useState(fimSemanaISO());
+  const [relatorio, setRelatorio] = useState(null);
+  const [carregando, setCarregando] = useState(false);
+
+  function aplicarPeriodo(novoPeriodo) {
+    setPeriodo(novoPeriodo);
+    if (novoPeriodo === "semana") {
+      setDataInicio(inicioSemanaISO());
+      setDataFim(fimSemanaISO());
+    } else if (novoPeriodo === "mes") {
+      setDataInicio(inicioMesISO());
+      setDataFim(fimMesISO());
+    }
+  }
+
+  useEffect(() => {
+    if (!dataInicio || !dataFim) return;
+    setCarregando(true);
+    api
+      .get("/api/relatorios", { params: { dataInicio, dataFim } })
+      .then((res) => setRelatorio(res.data))
+      .finally(() => setCarregando(false));
+  }, [dataInicio, dataFim]);
+
+  const maiorContagemServico = relatorio?.servicosMaisPedidos?.[0]?.quantidade || 1;
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-2">
+        {[
+          ["semana", "Esta semana"],
+          ["mes", "Este mês"],
+          ["personalizado", "Personalizado"],
+        ].map(([valor, label]) => (
+          <button
+            key={valor}
+            onClick={() => aplicarPeriodo(valor)}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+              periodo === valor ? "bg-neutral-900 text-white" : "border border-neutral-300 text-neutral-600"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {periodo === "personalizado" && (
+        <div className="mt-3 flex items-center gap-2">
+          <input
+            type="date"
+            value={dataInicio}
+            onChange={(e) => setDataInicio(e.target.value)}
+            className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
+          />
+          <span className="text-neutral-400">até</span>
+          <input
+            type="date"
+            value={dataFim}
+            onChange={(e) => setDataFim(e.target.value)}
+            className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
+          />
+        </div>
+      )}
+
+      {carregando && <p className="mt-4 text-sm text-neutral-500">Carregando relatório...</p>}
+
+      {!carregando && relatorio && (
+        <div className="mt-5 space-y-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-lg border border-neutral-200 bg-white p-4">
+              <p className="text-xs text-neutral-500">Faturamento</p>
+              <p className="mt-1 text-xl font-bold text-neutral-900">
+                R$ {Number(relatorio.faturamentoTotal).toFixed(2)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-neutral-200 bg-white p-4">
+              <p className="text-xs text-neutral-500">Atendimentos</p>
+              <p className="mt-1 text-xl font-bold text-neutral-900">{relatorio.totalAtendimentos}</p>
+            </div>
+            <div className="rounded-lg border border-neutral-200 bg-white p-4">
+              <p className="text-xs text-neutral-500">Taxa de cancelamento</p>
+              <p className="mt-1 text-xl font-bold text-neutral-900">{relatorio.taxaCancelamento}%</p>
+            </div>
+            <div className="rounded-lg border border-neutral-200 bg-white p-4">
+              <p className="text-xs text-neutral-500">Taxa de remarcação</p>
+              <p className="mt-1 text-xl font-bold text-neutral-900">{relatorio.taxaRemarcacao}%</p>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-neutral-700">Atendimentos por status</h3>
+            <div className="mt-2 space-y-1.5">
+              {Object.entries(relatorio.atendimentosPorStatus).map(([status, qtd]) => (
+                <div key={status} className="flex items-center gap-2 text-xs">
+                  <span className="w-24 shrink-0 text-neutral-600">{STATUS_LABEL[status] || status}</span>
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100">
+                    <div
+                      className={`h-full ${STATUS_BARRA[status] || "bg-neutral-400"}`}
+                      style={{
+                        width: relatorio.totalAtendimentos
+                          ? `${(qtd / relatorio.totalAtendimentos) * 100}%`
+                          : "0%",
+                      }}
+                    />
+                  </div>
+                  <span className="w-6 shrink-0 text-right font-medium text-neutral-700">{qtd}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold text-neutral-700">Serviços mais pedidos</h3>
+            {relatorio.servicosMaisPedidos.length === 0 ? (
+              <p className="mt-2 text-xs text-neutral-500">Nenhum atendimento nesse período.</p>
+            ) : (
+              <div className="mt-2 space-y-1.5">
+                {relatorio.servicosMaisPedidos.map((s) => (
+                  <div key={s.nome} className="flex items-center gap-2 text-xs">
+                    <span className="w-28 shrink-0 truncate text-neutral-600">{s.nome}</span>
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100">
+                      <div
+                        className="h-full bg-amber-500"
+                        style={{ width: `${(s.quantidade / maiorContagemServico) * 100}%` }}
+                      />
+                    </div>
+                    <span className="w-6 shrink-0 text-right font-medium text-neutral-700">{s.quantidade}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const { barbeiro } = useAuth();
   const [aba, setAba] = useState("agenda");
@@ -464,6 +659,7 @@ export default function AdminPage() {
           ["agenda", "Agenda"],
           ["servicos", "Serviços"],
           ["horarios", "Horário"],
+          ...(barbeiro?.dono ? [["relatorios", "Relatórios"]] : []),
           ["conta", "Minha conta"],
         ].map(([valor, label]) => (
           <button
@@ -482,6 +678,7 @@ export default function AdminPage() {
         {aba === "agenda" && <AbaAgenda />}
         {aba === "servicos" && <AbaServicos />}
         {aba === "horarios" && <AbaHorarios barbeiroId={barbeiro?.id} />}
+        {aba === "relatorios" && barbeiro?.dono && <AbaRelatorios />}
         {aba === "conta" && <AbaConta />}
       </div>
     </div>
