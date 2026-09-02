@@ -349,16 +349,26 @@ const DIAS_SEMANA = [
   { valor: "SUNDAY", label: "Domingo" },
 ];
 
-function AbaHorarios({ barbeiroId }) {
+function AbaHorarios({ barbeiroId, souDono }) {
+  const [barbeiros, setBarbeiros] = useState([]);
+  const [barbeiroSelecionado, setBarbeiroSelecionado] = useState(barbeiroId);
   const [horarios, setHorarios] = useState([]);
   const [erro, setErro] = useState("");
 
+  useEffect(() => {
+    if (souDono) {
+      api.get("/api/barbeiros").then((res) => setBarbeiros(res.data));
+    }
+  }, [souDono]);
+
+  const alvoId = barbeiroSelecionado || barbeiroId;
+
   function carregar() {
-    if (!barbeiroId) return;
-    api.get("/api/horarios-funcionamento", { params: { barbeiroId } }).then((res) => setHorarios(res.data));
+    if (!alvoId) return;
+    api.get("/api/horarios-funcionamento", { params: { barbeiroId: alvoId } }).then((res) => setHorarios(res.data));
   }
 
-  useEffect(carregar, [barbeiroId]);
+  useEffect(carregar, [alvoId]);
 
   function horarioDoDia(dia) {
     return horarios.find((h) => h.diaSemana === dia);
@@ -368,6 +378,7 @@ function AbaHorarios({ barbeiroId }) {
     setErro("");
     try {
       await api.post("/api/horarios-funcionamento", {
+        barbeiroId: alvoId,
         diaSemana: dia,
         horaAbertura: folga ? null : horaAbertura,
         horaFechamento: folga ? null : horaFechamento,
@@ -382,20 +393,40 @@ function AbaHorarios({ barbeiroId }) {
   }
 
   return (
-    <div className="space-y-2">
-      {erro && <p className="text-xs text-red-600">{erro}</p>}
-      {DIAS_SEMANA.map(({ valor, label }) => {
-        const existente = horarioDoDia(valor);
-        return (
-          <LinhaHorario
-            key={valor}
-            label={label}
-            dia={valor}
-            existente={existente}
-            onSalvar={salvar}
-          />
-        );
-      })}
+    <div className="space-y-4">
+      {souDono && barbeiros.length > 1 && (
+        <div>
+          <label className="block text-sm font-medium text-neutral-700">Barbeiro</label>
+          <select
+            value={alvoId}
+            onChange={(e) => setBarbeiroSelecionado(e.target.value)}
+            className="mt-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+          >
+            {barbeiros.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.nome}
+                {b.id === barbeiroId ? " (você)" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {erro && <p className="text-xs text-red-600">{erro}</p>}
+        {DIAS_SEMANA.map(({ valor, label }) => {
+          const existente = horarioDoDia(valor);
+          return (
+            <LinhaHorario
+              key={`${alvoId}-${valor}`}
+              label={label}
+              dia={valor}
+              existente={existente}
+              onSalvar={salvar}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -677,7 +708,7 @@ export default function AdminPage() {
       <div className="mt-5">
         {aba === "agenda" && <AbaAgenda />}
         {aba === "servicos" && <AbaServicos />}
-        {aba === "horarios" && <AbaHorarios barbeiroId={barbeiro?.id} />}
+        {aba === "horarios" && <AbaHorarios barbeiroId={barbeiro?.id} souDono={barbeiro?.dono} />}
         {aba === "relatorios" && barbeiro?.dono && <AbaRelatorios />}
         {aba === "conta" && <AbaConta />}
       </div>

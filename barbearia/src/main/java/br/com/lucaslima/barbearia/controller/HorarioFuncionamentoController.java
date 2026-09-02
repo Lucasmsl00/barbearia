@@ -2,6 +2,7 @@ package br.com.lucaslima.barbearia.controller;
 
 import br.com.lucaslima.barbearia.dto.HorarioFuncionamentoRequestDTO;
 import br.com.lucaslima.barbearia.dto.HorarioFuncionamentoResponseDTO;
+import br.com.lucaslima.barbearia.model.Barbeiro;
 import br.com.lucaslima.barbearia.model.HorarioFuncionamento;
 import br.com.lucaslima.barbearia.security.CurrentUserService;
 import br.com.lucaslima.barbearia.service.HorarioFuncionamentoService;
@@ -35,11 +36,16 @@ public class HorarioFuncionamentoController {
         return ResponseEntity.ok(horarios);
     }
 
-    // protegido: só altera o horário do próprio barbeiro autenticado
+    // protegido: por padrão altera o horário do próprio barbeiro autenticado;
+    // se quem está logado é o dono e informou barbeiroId, altera o horário desse outro barbeiro
     @PostMapping
     public ResponseEntity<HorarioFuncionamentoResponseDTO> salvar(@Valid @RequestBody HorarioFuncionamentoRequestDTO dto) {
-        UUID barbeiroId = currentUserService.getBarbeiroAutenticado().getId();
-        HorarioFuncionamento horario = horarioFuncionamentoService.salvar(barbeiroId, dto);
+        Barbeiro autenticado = currentUserService.getBarbeiroAutenticado();
+        UUID barbeiroAlvo = (autenticado.isDono() && dto.getBarbeiroId() != null)
+                ? dto.getBarbeiroId()
+                : autenticado.getId();
+
+        HorarioFuncionamento horario = horarioFuncionamentoService.salvar(barbeiroAlvo, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(new HorarioFuncionamentoResponseDTO(horario));
     }
 }
