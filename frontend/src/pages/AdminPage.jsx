@@ -418,7 +418,7 @@ function AbaHorarios({ barbeiroId, souDono }) {
           const existente = horarioDoDia(valor);
           return (
             <LinhaHorario
-              key={`${alvoId}-${valor}`}
+              key={`${alvoId}-${valor}-${existente?.id || "vazio"}`}
               label={label}
               dia={valor}
               existente={existente}
