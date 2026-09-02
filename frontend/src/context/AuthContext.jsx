@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
   async function login(email, senha) {
     const { data } = await api.post("/api/auth/login", { email, senha });
     localStorage.setItem("token", data.token);
-    const barbeiroInfo = { id: data.barbeiroId, nome: data.nome };
+    const barbeiroInfo = { id: data.barbeiroId, nome: data.nome, dono: data.dono };
     localStorage.setItem("barbeiro", JSON.stringify(barbeiroInfo));
     setBarbeiro(barbeiroInfo);
     return barbeiroInfo;

@@ -31,10 +31,12 @@ public class BarbeiroService {
     }
 
     public Barbeiro registrar(BarbeiroRegisterDTO dto) {
-        // só o primeiro cadastro (bootstrap do negócio) é público; depois disso,
-        // só um barbeiro já autenticado pode cadastrar outro (ex: um funcionário novo)
-        if (barbeiroRepository.count() > 0 && !existeUsuarioAutenticado()) {
-            throw new AccessDeniedException("Cadastro de novos barbeiros requer login");
+        boolean primeiroCadastro = barbeiroRepository.count() == 0;
+
+        // o primeiro cadastro (bootstrap do negócio) é público e vira o dono;
+        // depois disso, só o dono pode cadastrar novos acessos (ex: um barbeiro contratado)
+        if (!primeiroCadastro && !usuarioAutenticadoEhDono()) {
+            throw new AccessDeniedException("Somente o dono pode cadastrar novos acessos");
         }
 
         barbeiroRepository.findByEmail(dto.getEmail()).ifPresent(b -> {
@@ -45,6 +47,7 @@ public class BarbeiroService {
         barbeiro.setNome(dto.getNome());
         barbeiro.setEmail(dto.getEmail());
         barbeiro.setSenhaHash(passwordEncoder.encode(dto.getSenha()));
+        barbeiro.setDono(primeiroCadastro);
 
         return barbeiroRepository.save(barbeiro);
     }
@@ -62,8 +65,13 @@ public class BarbeiroService {
         barbeiroRepository.save(barbeiro);
     }
 
-    private boolean existeUsuarioAutenticado() {
+    private boolean usuarioAutenticadoEhDono() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken);
+        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+            return false;
+        }
+        return barbeiroRepository.findByEmail(auth.getName())
+                .map(Barbeiro::isDono)
+                .orElse(false);
     }
 }

@@ -9,6 +9,7 @@ public class BarbeiroResponseDTO {
     private UUID id;
     private String nome;
     private String email;
+    private boolean dono;
 
     public BarbeiroResponseDTO() {}
 
@@ -16,6 +17,7 @@ public class BarbeiroResponseDTO {
         this.id = barbeiro.getId();
         this.nome = barbeiro.getNome();
         this.email = barbeiro.getEmail();
+        this.dono = barbeiro.isDono();
     }
 
     public UUID getId() {
@@ -40,5 +42,13 @@ public class BarbeiroResponseDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public boolean isDono() {
+        return dono;
+    }
+
+    public void setDono(boolean dono) {
+        this.dono = dono;
     }
 }

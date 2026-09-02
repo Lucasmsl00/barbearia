@@ -21,6 +21,9 @@ public class Barbeiro {
     @Column(name = "senha_hash", nullable = false)
     private String senhaHash;
 
+    @Column(nullable = false)
+    private boolean dono;
+
     public Barbeiro() {
     }
 
@@ -52,5 +55,11 @@ public class Barbeiro {
         this.senhaHash = senhaHash;
     }
 
-    
+    public boolean isDono() {
+        return dono;
+    }
+
+    public void setDono(boolean dono) {
+        this.dono = dono;
+    }
 }

@@ -39,6 +39,6 @@ public class AuthController {
 
         String token = jwtService.gerarToken(barbeiro.getEmail());
 
-        return ResponseEntity.ok(new LoginResponseDTO(token, barbeiro.getId(), barbeiro.getNome()));
+        return ResponseEntity.ok(new LoginResponseDTO(token, barbeiro.getId(), barbeiro.getNome(), barbeiro.isDono()));
     }
 }
