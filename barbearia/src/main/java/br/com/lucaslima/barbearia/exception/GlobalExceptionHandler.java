@@ -49,10 +49,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneric(Exception ex) {
-        // DEBUG TEMPORÁRIO: expõe classe/mensagem real da exceção pra diagnosticar o 500 em produção. Reverter depois.
         ex.printStackTrace();
-        String detalhe = ex.getClass().getName() + ": " + ex.getMessage();
-        ApiError body = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error", detalhe);
+        ApiError body = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error", "Ocorreu um erro inesperado");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 }
