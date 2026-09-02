@@ -16,6 +16,88 @@ const STATUS_COR = {
   REMARCADO: "bg-neutral-200 text-neutral-600",
 };
 
+function AbaConta() {
+  const [senhaAtual, setSenhaAtual] = useState("");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [erro, setErro] = useState("");
+  const [sucesso, setSucesso] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setErro("");
+    setSucesso(false);
+
+    if (novaSenha !== confirmarSenha) {
+      setErro("A nova senha e a confirmação não coincidem");
+      return;
+    }
+
+    setEnviando(true);
+    try {
+      await api.patch("/api/barbeiros/senha", { senhaAtual, novaSenha });
+      setSucesso(true);
+      setSenhaAtual("");
+      setNovaSenha("");
+      setConfirmarSenha("");
+    } catch (err) {
+      setErro(err.response?.data?.message || "Não foi possível trocar a senha");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <div className="max-w-sm">
+      <h2 className="text-lg font-semibold">Trocar senha</h2>
+      <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-neutral-700">Senha atual</label>
+          <input
+            type="password"
+            value={senhaAtual}
+            onChange={(e) => setSenhaAtual(e.target.value)}
+            required
+            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-neutral-700">Nova senha</label>
+          <input
+            type="password"
+            value={novaSenha}
+            onChange={(e) => setNovaSenha(e.target.value)}
+            minLength={6}
+            required
+            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-neutral-700">Confirmar nova senha</label>
+          <input
+            type="password"
+            value={confirmarSenha}
+            onChange={(e) => setConfirmarSenha(e.target.value)}
+            minLength={6}
+            required
+            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+        </div>
+        {erro && <p className="text-sm text-red-600">{erro}</p>}
+        {sucesso && <p className="text-sm text-green-600">Senha alterada com sucesso.</p>}
+        <button
+          type="submit"
+          disabled={enviando}
+          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-40"
+        >
+          {enviando ? "Salvando..." : "Salvar nova senha"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 function AbaAgenda() {
   const [data, setData] = useState(hojeISO());
   const [agendamentos, setAgendamentos] = useState([]);
@@ -356,6 +438,7 @@ export default function AdminPage() {
           ["agenda", "Agenda"],
           ["servicos", "Serviços"],
           ["horarios", "Horário de funcionamento"],
+          ["conta", "Minha conta"],
         ].map(([valor, label]) => (
           <button
             key={valor}
@@ -373,6 +456,7 @@ export default function AdminPage() {
         {aba === "agenda" && <AbaAgenda />}
         {aba === "servicos" && <AbaServicos />}
         {aba === "horarios" && <AbaHorarios barbeiroId={barbeiro?.id} />}
+        {aba === "conta" && <AbaConta />}
       </div>
     </div>
   );

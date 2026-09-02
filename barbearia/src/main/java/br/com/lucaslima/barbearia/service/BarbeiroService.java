@@ -1,6 +1,7 @@
 package br.com.lucaslima.barbearia.service;
 
 import br.com.lucaslima.barbearia.dto.BarbeiroRegisterDTO;
+import br.com.lucaslima.barbearia.dto.TrocarSenhaDTO;
 import br.com.lucaslima.barbearia.exception.BusinessException;
 import br.com.lucaslima.barbearia.model.Barbeiro;
 import br.com.lucaslima.barbearia.repository.BarbeiroRepository;
@@ -10,8 +11,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class BarbeiroService {
@@ -44,6 +47,19 @@ public class BarbeiroService {
         barbeiro.setSenhaHash(passwordEncoder.encode(dto.getSenha()));
 
         return barbeiroRepository.save(barbeiro);
+    }
+
+    @Transactional
+    public void trocarSenha(UUID barbeiroId, TrocarSenhaDTO dto) {
+        Barbeiro barbeiro = barbeiroRepository.findById(barbeiroId)
+                .orElseThrow(() -> new IllegalStateException("Barbeiro autenticado não encontrado"));
+
+        if (!passwordEncoder.matches(dto.getSenhaAtual(), barbeiro.getSenhaHash())) {
+            throw new BusinessException("Senha atual incorreta");
+        }
+
+        barbeiro.setSenhaHash(passwordEncoder.encode(dto.getNovaSenha()));
+        barbeiroRepository.save(barbeiro);
     }
 
     private boolean existeUsuarioAutenticado() {
