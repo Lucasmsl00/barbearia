@@ -28,13 +28,14 @@ public class HorarioFuncionamentoService {
     }
 
     // Cria o horário do dia se não existir, ou atualiza se já existir (upsert por barbeiro + dia da semana)
+    // barbeiroId vem do barbeiro autenticado, nunca do corpo da requisição — evita alterar horário de outro barbeiro
     @Transactional
-    public HorarioFuncionamento salvar(HorarioFuncionamentoRequestDTO dto) {
-        Barbeiro barbeiro = barbeiroRepository.findById(dto.getBarbeiroId())
+    public HorarioFuncionamento salvar(UUID barbeiroId, HorarioFuncionamentoRequestDTO dto) {
+        Barbeiro barbeiro = barbeiroRepository.findById(barbeiroId)
                 .orElseThrow(() -> new ResourceNotFoundException("Barbeiro não encontrado"));
 
         HorarioFuncionamento horario = horarioFuncionamentoRepository
-                .findByBarbeiroIdAndDiaSemana(dto.getBarbeiroId(), dto.getDiaSemana())
+                .findByBarbeiroIdAndDiaSemana(barbeiroId, dto.getDiaSemana())
                 .orElseGet(HorarioFuncionamento::new);
 
         horario.setBarbeiro(barbeiro);

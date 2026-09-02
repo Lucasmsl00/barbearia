@@ -16,7 +16,7 @@ const STATUS_COR = {
   REMARCADO: "bg-neutral-200 text-neutral-600",
 };
 
-function AbaAgenda({ barbeiroId }) {
+function AbaAgenda() {
   const [data, setData] = useState(hojeISO());
   const [agendamentos, setAgendamentos] = useState([]);
   const [carregando, setCarregando] = useState(false);
@@ -26,15 +26,14 @@ function AbaAgenda({ barbeiroId }) {
   const [erro, setErro] = useState("");
 
   function carregar() {
-    if (!barbeiroId) return;
     setCarregando(true);
     api
-      .get("/api/agendamentos/atendimentos", { params: { barbeiroId, data } })
+      .get("/api/agendamentos/atendimentos", { params: { data } })
       .then((res) => setAgendamentos(res.data))
       .finally(() => setCarregando(false));
   }
 
-  useEffect(carregar, [barbeiroId, data]);
+  useEffect(carregar, [data]);
 
   async function cancelar(id) {
     if (!confirm("Cancelar este agendamento?")) return;
@@ -276,7 +275,6 @@ function AbaHorarios({ barbeiroId }) {
     setErro("");
     try {
       await api.post("/api/horarios-funcionamento", {
-        barbeiroId,
         diaSemana: dia,
         horaAbertura: folga ? null : horaAbertura,
         horaFechamento: folga ? null : horaFechamento,
@@ -372,7 +370,7 @@ export default function AdminPage() {
       </div>
 
       <div className="mt-5">
-        {aba === "agenda" && <AbaAgenda barbeiroId={barbeiro?.id} />}
+        {aba === "agenda" && <AbaAgenda />}
         {aba === "servicos" && <AbaServicos />}
         {aba === "horarios" && <AbaHorarios barbeiroId={barbeiro?.id} />}
       </div>

@@ -4,12 +4,8 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.UUID;
 
 public class HorarioFuncionamentoRequestDTO {
-
-    @NotNull(message = "O barbeiro é obrigatório")
-    private UUID barbeiroId;
 
     @NotNull(message = "O dia da semana é obrigatório")
     private DayOfWeek diaSemana;
@@ -19,14 +15,6 @@ public class HorarioFuncionamentoRequestDTO {
     private LocalTime horaFechamento;
 
     private boolean folga;
-
-    public UUID getBarbeiroId() {
-        return barbeiroId;
-    }
-
-    public void setBarbeiroId(UUID barbeiroId) {
-        this.barbeiroId = barbeiroId;
-    }
 
     public DayOfWeek getDiaSemana() {
         return diaSemana;

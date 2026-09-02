@@ -4,6 +4,7 @@ import br.com.lucaslima.barbearia.dto.AgendamentoRequestDTO;
 import br.com.lucaslima.barbearia.dto.AgendamentoResponseDTO;
 import br.com.lucaslima.barbearia.dto.RemarcarAgendamentoDTO;
 import br.com.lucaslima.barbearia.model.Agendamento;
+import br.com.lucaslima.barbearia.security.CurrentUserService;
 import br.com.lucaslima.barbearia.service.AgendamentoService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -21,11 +22,14 @@ import java.util.UUID;
 public class AgendamentoController {
 
     private final AgendamentoService agendamentoService;
+    private final CurrentUserService currentUserService;
 
-    public AgendamentoController(AgendamentoService agendamentoService) {
+    public AgendamentoController(AgendamentoService agendamentoService, CurrentUserService currentUserService) {
         this.agendamentoService = agendamentoService;
+        this.currentUserService = currentUserService;
     }
 
+    // público: cliente vê horários livres antes de agendar
     @GetMapping("/horarios-disponiveis")
     public ResponseEntity<List<LocalTime>> buscarHorariosDisponiveis(
             @RequestParam UUID barbeiroId,
@@ -35,10 +39,11 @@ public class AgendamentoController {
         return ResponseEntity.ok(horarios);
     }
 
+    // protegido: agenda do próprio barbeiro logado, nunca de outro
     @GetMapping("/atendimentos")
     public ResponseEntity<List<AgendamentoResponseDTO>> listarAgendamentosPorBarbeiroEData(
-            @RequestParam UUID barbeiroId,
             @RequestParam LocalDate data) {
+        UUID barbeiroId = currentUserService.getBarbeiroAutenticado().getId();
         List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarAgendamentoPorBarbeiroEData(barbeiroId, data)
                 .stream()
                 .map(AgendamentoResponseDTO::new)
@@ -48,7 +53,8 @@ public class AgendamentoController {
 
     @PatchMapping("/{id}/cancelar")
     public ResponseEntity<AgendamentoResponseDTO> cancelarAgendamento(@PathVariable UUID id) {
-        Agendamento agendamento = agendamentoService.cancelarAgendamento(id);
+        UUID barbeiroId = currentUserService.getBarbeiroAutenticado().getId();
+        Agendamento agendamento = agendamentoService.cancelarAgendamento(id, barbeiroId);
         return ResponseEntity.ok(new AgendamentoResponseDTO(agendamento));
     }
 
@@ -56,10 +62,12 @@ public class AgendamentoController {
     public ResponseEntity<AgendamentoResponseDTO> remarcarAgendamento(
             @PathVariable UUID id,
             @Valid @RequestBody RemarcarAgendamentoDTO dto) {
-        Agendamento novoAgendamento = agendamentoService.remarcarAgendamento(id, dto.getNovaData(), dto.getNovaHoraInicio());
+        UUID barbeiroId = currentUserService.getBarbeiroAutenticado().getId();
+        Agendamento novoAgendamento = agendamentoService.remarcarAgendamento(id, dto.getNovaData(), dto.getNovaHoraInicio(), barbeiroId);
         return ResponseEntity.ok(new AgendamentoResponseDTO(novoAgendamento));
     }
 
+    // público: cliente cria seu próprio agendamento, sem login
     @PostMapping
     public ResponseEntity<AgendamentoResponseDTO> criarAgendamento(@Valid @RequestBody AgendamentoRequestDTO dto) {
         Agendamento novoAgendamento = agendamentoService.criarAgendamento(dto);

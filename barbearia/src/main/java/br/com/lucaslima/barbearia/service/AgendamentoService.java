@@ -6,6 +6,7 @@ import br.com.lucaslima.barbearia.exception.ResourceNotFoundException;
 import br.com.lucaslima.barbearia.model.*;
 import br.com.lucaslima.barbearia.repository.*;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,18 +116,23 @@ public class AgendamentoService {
     }
 
     @Transactional
-    public Agendamento cancelarAgendamento(UUID id) {
+    public Agendamento cancelarAgendamento(UUID id, UUID barbeiroAutenticadoId) {
         Agendamento agendamento = agendamentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
+
+        verificarDono(agendamento, barbeiroAutenticadoId);
+
         agendamento.setStatus(StatusAgendamento.CANCELADO);
 
         return agendamentoRepository.save(agendamento);
     }
 
     @Transactional
-    public Agendamento remarcarAgendamento(UUID idAntigo, LocalDate novaData, LocalTime novaHoraInicio) {
+    public Agendamento remarcarAgendamento(UUID idAntigo, LocalDate novaData, LocalTime novaHoraInicio, UUID barbeiroAutenticadoId) {
         Agendamento agendamentoAntigo = agendamentoRepository.findById(idAntigo)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
+
+        verificarDono(agendamentoAntigo, barbeiroAutenticadoId);
 
         if (agendamentoAntigo.getStatus() == StatusAgendamento.CANCELADO) {
             throw new BusinessException("Não é possível remarcar um agendamento cancelado");
@@ -151,6 +157,12 @@ public class AgendamentoService {
         novoAgendamento.setAgendamentoOrigem(agendamentoAntigo);
 
         return agendamentoRepository.save(novoAgendamento);
+    }
+
+    private void verificarDono(Agendamento agendamento, UUID barbeiroAutenticadoId) {
+        if (!agendamento.getBarbeiro().getId().equals(barbeiroAutenticadoId)) {
+            throw new AccessDeniedException("Este agendamento não pertence a este barbeiro");
+        }
     }
 
     private void validarDisponibilidade(UUID barbeiroId, LocalDate data, LocalTime horaInicio, LocalTime horaFim, UUID idParaIgnorar) {

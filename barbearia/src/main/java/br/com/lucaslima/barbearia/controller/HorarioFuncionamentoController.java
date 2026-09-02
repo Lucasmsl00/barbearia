@@ -2,6 +2,7 @@ package br.com.lucaslima.barbearia.controller;
 
 import br.com.lucaslima.barbearia.dto.HorarioFuncionamentoRequestDTO;
 import br.com.lucaslima.barbearia.model.HorarioFuncionamento;
+import br.com.lucaslima.barbearia.security.CurrentUserService;
 import br.com.lucaslima.barbearia.service.HorarioFuncionamentoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -16,19 +17,24 @@ import java.util.UUID;
 public class HorarioFuncionamentoController {
 
     private final HorarioFuncionamentoService horarioFuncionamentoService;
+    private final CurrentUserService currentUserService;
 
-    public HorarioFuncionamentoController(HorarioFuncionamentoService horarioFuncionamentoService) {
+    public HorarioFuncionamentoController(HorarioFuncionamentoService horarioFuncionamentoService, CurrentUserService currentUserService) {
         this.horarioFuncionamentoService = horarioFuncionamentoService;
+        this.currentUserService = currentUserService;
     }
 
+    // público: cliente pode consultar o expediente de qualquer barbeiro antes de agendar
     @GetMapping
     public ResponseEntity<List<HorarioFuncionamento>> listarPorBarbeiro(@RequestParam UUID barbeiroId) {
         return ResponseEntity.ok(horarioFuncionamentoService.listarPorBarbeiro(barbeiroId));
     }
 
+    // protegido: só altera o horário do próprio barbeiro autenticado
     @PostMapping
     public ResponseEntity<HorarioFuncionamento> salvar(@Valid @RequestBody HorarioFuncionamentoRequestDTO dto) {
-        HorarioFuncionamento horario = horarioFuncionamentoService.salvar(dto);
+        UUID barbeiroId = currentUserService.getBarbeiroAutenticado().getId();
+        HorarioFuncionamento horario = horarioFuncionamentoService.salvar(barbeiroId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(horario);
     }
 }
