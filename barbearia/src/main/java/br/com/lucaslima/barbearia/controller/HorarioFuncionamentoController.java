@@ -1,6 +1,7 @@
 package br.com.lucaslima.barbearia.controller;
 
 import br.com.lucaslima.barbearia.dto.HorarioFuncionamentoRequestDTO;
+import br.com.lucaslima.barbearia.dto.HorarioFuncionamentoResponseDTO;
 import br.com.lucaslima.barbearia.model.HorarioFuncionamento;
 import br.com.lucaslima.barbearia.security.CurrentUserService;
 import br.com.lucaslima.barbearia.service.HorarioFuncionamentoService;
@@ -26,15 +27,19 @@ public class HorarioFuncionamentoController {
 
     // público: cliente pode consultar o expediente de qualquer barbeiro antes de agendar
     @GetMapping
-    public ResponseEntity<List<HorarioFuncionamento>> listarPorBarbeiro(@RequestParam UUID barbeiroId) {
-        return ResponseEntity.ok(horarioFuncionamentoService.listarPorBarbeiro(barbeiroId));
+    public ResponseEntity<List<HorarioFuncionamentoResponseDTO>> listarPorBarbeiro(@RequestParam UUID barbeiroId) {
+        List<HorarioFuncionamentoResponseDTO> horarios = horarioFuncionamentoService.listarPorBarbeiro(barbeiroId)
+                .stream()
+                .map(HorarioFuncionamentoResponseDTO::new)
+                .toList();
+        return ResponseEntity.ok(horarios);
     }
 
     // protegido: só altera o horário do próprio barbeiro autenticado
     @PostMapping
-    public ResponseEntity<HorarioFuncionamento> salvar(@Valid @RequestBody HorarioFuncionamentoRequestDTO dto) {
+    public ResponseEntity<HorarioFuncionamentoResponseDTO> salvar(@Valid @RequestBody HorarioFuncionamentoRequestDTO dto) {
         UUID barbeiroId = currentUserService.getBarbeiroAutenticado().getId();
         HorarioFuncionamento horario = horarioFuncionamentoService.salvar(barbeiroId, dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(horario);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new HorarioFuncionamentoResponseDTO(horario));
     }
 }
