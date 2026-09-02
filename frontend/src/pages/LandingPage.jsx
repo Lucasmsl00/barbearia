@@ -33,7 +33,7 @@ export default function LandingPage() {
   useEffect(() => {
     api.get("/api/servicos").then((res) => setServicos(res.data));
     api.get("/api/barbeiros").then((res) => {
-      const barbeiro = res.data[0];
+      const barbeiro = res.data.find((b) => b.dono) || res.data[0];
       if (barbeiro) {
         api
           .get("/api/horarios-funcionamento", { params: { barbeiroId: barbeiro.id } })
