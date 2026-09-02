@@ -31,6 +31,12 @@ public class HorarioFuncionamento {
     @Column(name = "hora_fechamento")
     private LocalTime horaFechamento;
 
+    @Column(name = "hora_almoco_inicio")
+    private LocalTime horaAlmocoInicio;
+
+    @Column(name = "hora_almoco_fim")
+    private LocalTime horaAlmocoFim;
+
     @Column(nullable = false)
     private boolean folga;
 
@@ -70,6 +76,22 @@ public class HorarioFuncionamento {
 
     public void setHoraFechamento(LocalTime horaFechamento) {
         this.horaFechamento = horaFechamento;
+    }
+
+    public LocalTime getHoraAlmocoInicio() {
+        return horaAlmocoInicio;
+    }
+
+    public void setHoraAlmocoInicio(LocalTime horaAlmocoInicio) {
+        this.horaAlmocoInicio = horaAlmocoInicio;
+    }
+
+    public LocalTime getHoraAlmocoFim() {
+        return horaAlmocoFim;
+    }
+
+    public void setHoraAlmocoFim(LocalTime horaAlmocoFim) {
+        this.horaAlmocoFim = horaAlmocoFim;
     }
 
     public boolean isFolga() {

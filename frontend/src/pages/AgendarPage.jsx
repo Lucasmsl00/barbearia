@@ -7,6 +7,16 @@ function hojeISO() {
   return new Date(hoje.getTime() - offset * 60000).toISOString().slice(0, 10);
 }
 
+// A barbearia só aceita agendamento dentro da semana atual (domingo a sábado)
+function fimDaSemanaISO() {
+  const hoje = new Date();
+  const offset = hoje.getTimezoneOffset();
+  const local = new Date(hoje.getTime() - offset * 60000);
+  const diasAteSabado = 6 - local.getUTCDay();
+  local.setUTCDate(local.getUTCDate() + diasAteSabado);
+  return local.toISOString().slice(0, 10);
+}
+
 export default function AgendarPage() {
   const [barbeiros, setBarbeiros] = useState([]);
   const [servicos, setServicos] = useState([]);
@@ -136,10 +146,12 @@ export default function AgendarPage() {
             type="date"
             value={data}
             min={hojeISO()}
+            max={fimDaSemanaISO()}
             onChange={(e) => setData(e.target.value)}
             required
             className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
           />
+          <p className="mt-1 text-xs text-neutral-500">Agendamentos disponíveis somente até este sábado.</p>
         </div>
 
         {barbeiroId && servicoId && (
@@ -150,7 +162,7 @@ export default function AgendarPage() {
             ) : horarios.length === 0 ? (
               <p className="mt-2 text-sm text-neutral-500">Nenhum horário disponível nesse dia.</p>
             ) : (
-              <div className="mt-2 grid grid-cols-4 gap-2">
+              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {horarios.map((h) => (
                   <button
                     type="button"

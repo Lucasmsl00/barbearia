@@ -1,6 +1,7 @@
 package br.com.lucaslima.barbearia.service;
 
 import br.com.lucaslima.barbearia.dto.HorarioFuncionamentoRequestDTO;
+import br.com.lucaslima.barbearia.exception.BusinessException;
 import br.com.lucaslima.barbearia.exception.ResourceNotFoundException;
 import br.com.lucaslima.barbearia.model.Barbeiro;
 import br.com.lucaslima.barbearia.model.HorarioFuncionamento;
@@ -38,10 +39,21 @@ public class HorarioFuncionamentoService {
                 .findByBarbeiroIdAndDiaSemana(barbeiroId, dto.getDiaSemana())
                 .orElseGet(HorarioFuncionamento::new);
 
+        if (!dto.isFolga() && dto.getHoraAlmocoInicio() != null && dto.getHoraAlmocoFim() != null) {
+            boolean intervaloValido = dto.getHoraAlmocoInicio().isBefore(dto.getHoraAlmocoFim())
+                    && !dto.getHoraAlmocoInicio().isBefore(dto.getHoraAbertura())
+                    && !dto.getHoraAlmocoFim().isAfter(dto.getHoraFechamento());
+            if (!intervaloValido) {
+                throw new BusinessException("Horário de almoço inválido: precisa estar dentro do expediente e ter início antes do fim");
+            }
+        }
+
         horario.setBarbeiro(barbeiro);
         horario.setDiaSemana(dto.getDiaSemana());
         horario.setHoraAbertura(dto.getHoraAbertura());
         horario.setHoraFechamento(dto.getHoraFechamento());
+        horario.setHoraAlmocoInicio(dto.isFolga() ? null : dto.getHoraAlmocoInicio());
+        horario.setHoraAlmocoFim(dto.isFolga() ? null : dto.getHoraAlmocoFim());
         horario.setFolga(dto.isFolga());
 
         return horarioFuncionamentoRepository.save(horario);

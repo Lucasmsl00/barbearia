@@ -7,7 +7,10 @@ export const business = {
   telefone: "(81) 99109-5655",
   whatsapp: "5581991095655", // só números, com código do país, pro link wa.me
   endereco:
-    "Rua Sebastião Lopes, 267 A — Bairro: Mangueira, Vitória de Santo Antão - PE",
+    "Rua Sebastião Lopes, 267 A — Mangueira, Vitória de Santo Antão - PE",
   instagram: "https://instagram.com/tjbeautybarbershop",
-  mapsEmbedUrl: "https://www.google.com/maps?q=-8.12303,-35.2985935&output=embed",
+  mapsEmbedUrl:
+    "https://www.google.com/maps?q=-8.12303,-35.2985935&output=embed",
+  mapsDirectionsUrl:
+    "https://www.google.com/maps/dir/?api=1&destination=-8.12303,-35.2985935",
 };

@@ -14,6 +14,10 @@ public class HorarioFuncionamentoRequestDTO {
 
     private LocalTime horaFechamento;
 
+    private LocalTime horaAlmocoInicio;
+
+    private LocalTime horaAlmocoFim;
+
     private boolean folga;
 
     public DayOfWeek getDiaSemana() {
@@ -38,6 +42,22 @@ public class HorarioFuncionamentoRequestDTO {
 
     public void setHoraFechamento(LocalTime horaFechamento) {
         this.horaFechamento = horaFechamento;
+    }
+
+    public LocalTime getHoraAlmocoInicio() {
+        return horaAlmocoInicio;
+    }
+
+    public void setHoraAlmocoInicio(LocalTime horaAlmocoInicio) {
+        this.horaAlmocoInicio = horaAlmocoInicio;
+    }
+
+    public LocalTime getHoraAlmocoFim() {
+        return horaAlmocoFim;
+    }
+
+    public void setHoraAlmocoFim(LocalTime horaAlmocoFim) {
+        this.horaAlmocoFim = horaAlmocoFim;
     }
 
     public boolean isFolga() {

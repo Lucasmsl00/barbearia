@@ -41,6 +41,10 @@ public class AgendamentoService {
     }
 
     public List<LocalTime> buscarHorariosDisponiveis(UUID barbeiroId, UUID servicoId, LocalDate data) {
+        if (foraDaSemanaAtual(data)) {
+            return List.of();
+        }
+
         DayOfWeek diaSemana = data.getDayOfWeek();
 
         Servico servico = servicoRepository.findById(servicoId)
@@ -69,7 +73,9 @@ public class AgendamentoService {
                 break;
             }
 
-            if (!temConflito(horaAtual, horaFimServico, agendamentosExistentes, null)) {
+            boolean noAlmoco = sobrepoeAlmoco(horaAtual, horaFimServico, horario);
+
+            if (!noAlmoco && !temConflito(horaAtual, horaFimServico, agendamentosExistentes, null)) {
                 horariosDisponiveis.add(horaAtual);
             }
 
@@ -166,6 +172,26 @@ public class AgendamentoService {
     }
 
     private void validarDisponibilidade(UUID barbeiroId, LocalDate data, LocalTime horaInicio, LocalTime horaFim, UUID idParaIgnorar) {
+        if (foraDaSemanaAtual(data)) {
+            throw new BusinessException("Só é possível agendar dentro da semana atual (domingo a sábado)");
+        }
+
+        HorarioFuncionamento horario = horarioFuncionamentoRepository
+                .findByBarbeiroIdAndDiaSemana(barbeiroId, data.getDayOfWeek())
+                .orElseThrow(() -> new BusinessException("Barbeiro não atende neste dia"));
+
+        if (horario.isFolga()) {
+            throw new BusinessException("Barbeiro não atende neste dia");
+        }
+
+        if (horaInicio.isBefore(horario.getHoraAbertura()) || horaFim.isAfter(horario.getHoraFechamento())) {
+            throw new BusinessException("Horário fora do expediente");
+        }
+
+        if (sobrepoeAlmoco(horaInicio, horaFim, horario)) {
+            throw new BusinessException("Este horário cai no intervalo de almoço");
+        }
+
         List<Agendamento> existentes = agendamentoRepository
                 .findByBarbeiroIdAndDataAndStatusNot(barbeiroId, data, StatusAgendamento.CANCELADO);
 
@@ -186,5 +212,20 @@ public class AgendamentoService {
             }
         }
         return false;
+    }
+
+    private boolean sobrepoeAlmoco(LocalTime horaInicio, LocalTime horaFim, HorarioFuncionamento horario) {
+        if (horario.getHoraAlmocoInicio() == null || horario.getHoraAlmocoFim() == null) {
+            return false;
+        }
+        return horaInicio.isBefore(horario.getHoraAlmocoFim()) && horaFim.isAfter(horario.getHoraAlmocoInicio());
+    }
+
+    // A barbearia só aceita agendamento dentro da semana corrente (domingo a sábado), nunca no mês inteiro
+    private boolean foraDaSemanaAtual(LocalDate data) {
+        LocalDate hoje = LocalDate.now();
+        int diasDesdeDomingo = hoje.getDayOfWeek().getValue() % 7; // domingo=7 -> 0, segunda=1, ..., sábado=6
+        LocalDate fimDaSemana = hoje.plusDays(6 - diasDesdeDomingo);
+        return data.isBefore(hoje) || data.isAfter(fimDaSemana);
     }
 }

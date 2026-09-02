@@ -353,13 +353,15 @@ function AbaHorarios({ barbeiroId }) {
     return horarios.find((h) => h.diaSemana === dia);
   }
 
-  async function salvar(dia, horaAbertura, horaFechamento, folga) {
+  async function salvar(dia, horaAbertura, horaFechamento, temAlmoco, horaAlmocoInicio, horaAlmocoFim, folga) {
     setErro("");
     try {
       await api.post("/api/horarios-funcionamento", {
         diaSemana: dia,
         horaAbertura: folga ? null : horaAbertura,
         horaFechamento: folga ? null : horaFechamento,
+        horaAlmocoInicio: !folga && temAlmoco ? horaAlmocoInicio : null,
+        horaAlmocoFim: !folga && temAlmoco ? horaAlmocoFim : null,
         folga,
       });
       carregar();
@@ -390,6 +392,9 @@ function AbaHorarios({ barbeiroId }) {
 function LinhaHorario({ label, dia, existente, onSalvar }) {
   const [abertura, setAbertura] = useState(existente?.horaAbertura?.slice(0, 5) || "09:00");
   const [fechamento, setFechamento] = useState(existente?.horaFechamento?.slice(0, 5) || "19:00");
+  const [temAlmoco, setTemAlmoco] = useState(Boolean(existente?.horaAlmocoInicio));
+  const [almocoInicio, setAlmocoInicio] = useState(existente?.horaAlmocoInicio?.slice(0, 5) || "12:00");
+  const [almocoFim, setAlmocoFim] = useState(existente?.horaAlmocoFim?.slice(0, 5) || "13:00");
   const [folga, setFolga] = useState(existente?.folga || false);
 
   return (
@@ -414,10 +419,31 @@ function LinhaHorario({ label, dia, existente, onSalvar }) {
             onChange={(e) => setFechamento(e.target.value)}
             className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
           />
+          <label className="flex items-center gap-1.5 text-xs text-neutral-600">
+            <input type="checkbox" checked={temAlmoco} onChange={(e) => setTemAlmoco(e.target.checked)} />
+            Almoço
+          </label>
+          {temAlmoco && (
+            <>
+              <input
+                type="time"
+                value={almocoInicio}
+                onChange={(e) => setAlmocoInicio(e.target.value)}
+                className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
+              />
+              <span className="text-neutral-400">até</span>
+              <input
+                type="time"
+                value={almocoFim}
+                onChange={(e) => setAlmocoFim(e.target.value)}
+                className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
+              />
+            </>
+          )}
         </>
       )}
       <button
-        onClick={() => onSalvar(dia, abertura, fechamento, folga)}
+        onClick={() => onSalvar(dia, abertura, fechamento, temAlmoco, almocoInicio, almocoFim, folga)}
         className="ml-auto rounded-md bg-neutral-900 px-3 py-1 text-xs text-white hover:bg-neutral-700"
       >
         Salvar
@@ -433,17 +459,17 @@ export default function AdminPage() {
   return (
     <div>
       <h1 className="text-2xl font-semibold">Painel do barbeiro</h1>
-      <div className="mt-4 flex gap-1 border-b border-neutral-200">
+      <div className="mt-4 flex gap-1 overflow-x-auto border-b border-neutral-200">
         {[
           ["agenda", "Agenda"],
           ["servicos", "Serviços"],
-          ["horarios", "Horário de funcionamento"],
+          ["horarios", "Horário"],
           ["conta", "Minha conta"],
         ].map(([valor, label]) => (
           <button
             key={valor}
             onClick={() => setAba(valor)}
-            className={`border-b-2 px-4 py-2 text-sm font-medium ${
+            className={`shrink-0 border-b-2 px-4 py-2 text-sm font-medium ${
               aba === valor ? "border-neutral-900 text-neutral-900" : "border-transparent text-neutral-500"
             }`}
           >

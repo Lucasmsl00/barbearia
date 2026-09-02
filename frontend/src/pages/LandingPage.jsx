@@ -157,7 +157,13 @@ export default function LandingPage() {
                   <li key={dia} className="flex justify-between px-4 py-2.5 text-sm">
                     <span className="text-neutral-400">{DIAS_LABEL[dia]}</span>
                     <span className="font-medium text-white">
-                      {!h ? "—" : h.folga ? "Fechado" : `${h.horaAbertura?.slice(0, 5)} - ${h.horaFechamento?.slice(0, 5)}`}
+                      {!h
+                        ? "—"
+                        : h.folga
+                          ? "Fechado"
+                          : h.horaAlmocoInicio && h.horaAlmocoFim
+                            ? `${h.horaAbertura?.slice(0, 5)}-${h.horaAlmocoInicio.slice(0, 5)}, ${h.horaAlmocoFim.slice(0, 5)}-${h.horaFechamento?.slice(0, 5)}`
+                            : `${h.horaAbertura?.slice(0, 5)} - ${h.horaFechamento?.slice(0, 5)}`}
                     </span>
                   </li>
                 );
@@ -171,18 +177,31 @@ export default function LandingPage() {
             <div className="mt-5 space-y-3 text-sm text-neutral-300">
               <p>📍 {business.endereco}</p>
               <p>📞 {business.telefone}</p>
-              <a href={business.instagram} target="_blank" rel="noreferrer" className="block text-amber-500 hover:underline">
-                📷 Instagram
+              <a
+                href={business.instagram}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 text-amber-500 hover:underline"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0">
+                  <rect x="2" y="2" width="20" height="20" rx="5" />
+                  <circle cx="12" cy="12" r="4.5" />
+                  <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
+                </svg>
+                Instagram
               </a>
             </div>
             <div className="mt-5 overflow-hidden rounded-lg border border-neutral-800">
-              <iframe
-                title="Localização"
-                src={business.mapsEmbedUrl}
-                className="h-56 w-full grayscale invert"
-                loading="lazy"
-              />
+              <iframe title="Localização" src={business.mapsEmbedUrl} className="h-56 w-full" loading="lazy" />
             </div>
+            <a
+              href={business.mapsDirectionsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex items-center gap-2 rounded-md border border-neutral-700 px-4 py-2 text-sm font-semibold text-white hover:border-amber-500 hover:text-amber-500"
+            >
+              📍 Como chegar
+            </a>
           </div>
         </div>
       </section>
