@@ -49,8 +49,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneric(Exception ex) {
+        // DEBUG TEMPORÁRIO: reverter depois de diagnosticar
         ex.printStackTrace();
-        ApiError body = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error", "Ocorreu um erro inesperado");
+        StringBuilder detalhe = new StringBuilder(ex.getClass().getName() + ": " + ex.getMessage());
+        Throwable causa = ex.getCause();
+        int voltas = 0;
+        while (causa != null && voltas < 5) {
+            detalhe.append(" | causado por ").append(causa.getClass().getName()).append(": ").append(causa.getMessage());
+            causa = causa.getCause();
+            voltas++;
+        }
+        ApiError body = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error", detalhe.toString());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 }
