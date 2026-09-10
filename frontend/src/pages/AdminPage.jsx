@@ -628,7 +628,7 @@ function AbaHorarios({ barbeiroId, souDono }) {
 
   return (
     <div className="space-y-4">
-      {souDono && barbeiros.length > 1 && (
+      {souDono && barbeiros.length > 0 && (
         <Card className="flex items-center gap-3 p-4">
           <span className="text-sm font-medium text-neutral-700">Configurando horário de</span>
           <select
@@ -681,57 +681,41 @@ function LinhaHorario({ label, dia, existente, onSalvar }) {
     setSalvando(false);
   }
 
+  const timeInputCls =
+    "rounded-lg border border-neutral-300 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20";
+
   return (
     <Card className={`p-4 transition ${folga ? "bg-neutral-50/60" : ""}`}>
-      <div className="flex flex-wrap items-center gap-4">
-        <span className="w-20 shrink-0 text-sm font-semibold text-neutral-900">{label}</span>
-        <Toggle checked={folga} onChange={setFolga} label="Folga" />
-
-        {!folga && (
-          <>
-            <div className="flex items-center gap-1.5 text-sm">
-              <input
-                type="time"
-                value={abertura}
-                onChange={(e) => setAbertura(e.target.value)}
-                className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
-              />
-              <span className="text-neutral-400">até</span>
-              <input
-                type="time"
-                value={fechamento}
-                onChange={(e) => setFechamento(e.target.value)}
-                className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
-              />
-            </div>
-
-            <Toggle checked={temAlmoco} onChange={setTemAlmoco} label="Almoço" />
-
-            {temAlmoco && (
-              <div className="flex items-center gap-1.5 text-sm">
-                <input
-                  type="time"
-                  value={almocoInicio}
-                  onChange={(e) => setAlmocoInicio(e.target.value)}
-                  className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
-                />
-                <span className="text-neutral-400">até</span>
-                <input
-                  type="time"
-                  value={almocoFim}
-                  onChange={(e) => setAlmocoFim(e.target.value)}
-                  className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
-                />
-              </div>
-            )}
-          </>
-        )}
-
-        <BotaoPrimario onClick={handleSalvar} disabled={salvando} className="ml-auto px-3.5 py-1.5 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="w-16 shrink-0 text-sm font-semibold text-neutral-900">{label}</span>
+          <Toggle checked={folga} onChange={setFolga} label="Folga" />
+        </div>
+        <BotaoPrimario onClick={handleSalvar} disabled={salvando} className="px-3.5 py-1.5 text-xs">
           {salvando && <Spinner className="h-3.5 w-3.5" />}
           Salvar
         </BotaoPrimario>
       </div>
+
+      {!folga && (
+        <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-neutral-100 pt-3">
+          <div className="flex items-center gap-1.5 text-sm">
+            <input type="time" value={abertura} onChange={(e) => setAbertura(e.target.value)} className={timeInputCls} />
+            <span className="text-neutral-400">até</span>
+            <input type="time" value={fechamento} onChange={(e) => setFechamento(e.target.value)} className={timeInputCls} />
+          </div>
+
+          <Toggle checked={temAlmoco} onChange={setTemAlmoco} label="Almoço" />
+
+          {temAlmoco && (
+            <div className="flex items-center gap-1.5 text-sm">
+              <input type="time" value={almocoInicio} onChange={(e) => setAlmocoInicio(e.target.value)} className={timeInputCls} />
+              <span className="text-neutral-400">até</span>
+              <input type="time" value={almocoFim} onChange={(e) => setAlmocoFim(e.target.value)} className={timeInputCls} />
+            </div>
+          )}
+        </div>
+      )}
     </Card>
   );
 }
@@ -981,9 +965,9 @@ function AbaRelatorios() {
             {!relatorio.horariosPico || relatorio.horariosPico.length === 0 ? (
               <p className="mt-3 text-xs text-neutral-500">Nenhum atendimento nesse período.</p>
             ) : (
-              <div className="mt-4 flex h-32 items-end gap-1.5">
+              <div className="mt-4 flex h-32 items-end gap-1.5 overflow-x-auto">
                 {relatorio.horariosPico.map((h) => (
-                  <div key={h.hora} className="flex flex-1 flex-col items-center gap-1.5">
+                  <div key={h.hora} className="flex h-full min-w-[2.25rem] flex-1 flex-col items-center justify-end gap-1.5">
                     <span className="text-[11px] font-semibold text-neutral-600">{h.quantidade}</span>
                     <div
                       className="w-full rounded-t-md bg-amber-500"

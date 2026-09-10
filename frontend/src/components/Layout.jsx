@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { business } from "../config/business";
 
-const PAGINAS_IMERSIVAS = ["/", "/login", "/registrar"];
+const PAGINAS_IMERSIVAS = ["/", "/login", "/registrar", "/agendar"];
 
 export default function Layout({ children }) {
   const { barbeiro, logout } = useAuth();
@@ -26,10 +26,16 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
       <header className="sticky top-0 z-20 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link to="/" onClick={fecharMenu} className="flex items-center gap-2 text-lg font-semibold tracking-tight text-white">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-base">💈</span>
-            <span className="text-amber-500">{business.nome}</span>
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3">
+          <Link
+            to="/"
+            onClick={fecharMenu}
+            className="flex min-w-0 shrink items-center gap-2 text-base font-semibold tracking-tight text-white sm:text-lg"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-base">
+              💈
+            </span>
+            <span className="truncate text-amber-500">{business.nome}</span>
           </Link>
 
           {/* nav desktop */}
@@ -66,7 +72,7 @@ export default function Layout({ children }) {
           </nav>
 
           {/* botões mobile: Agendar sempre visível + hamburguer */}
-          <div className="flex items-center gap-2 sm:hidden">
+          <div className="flex shrink-0 items-center gap-2 sm:hidden">
             <Link
               to="/agendar"
               onClick={fecharMenu}

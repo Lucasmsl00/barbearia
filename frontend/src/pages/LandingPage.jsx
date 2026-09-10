@@ -151,9 +151,9 @@ export default function LandingPage() {
               {ORDEM_DIAS.map((dia) => {
                 const h = horariosPorDia[dia];
                 return (
-                  <li key={dia} className="flex justify-between px-4 py-2.5 text-sm">
-                    <span className="text-neutral-400">{DIAS_LABEL[dia]}</span>
-                    <span className="font-medium text-white">
+                  <li key={dia} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 px-4 py-2.5 text-sm">
+                    <span className="shrink-0 text-neutral-400">{DIAS_LABEL[dia]}</span>
+                    <span className="text-right font-medium text-white">
                       {!h
                         ? "—"
                         : h.folga
