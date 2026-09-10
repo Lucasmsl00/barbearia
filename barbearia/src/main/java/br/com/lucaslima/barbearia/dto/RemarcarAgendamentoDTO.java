@@ -13,6 +13,8 @@ public class RemarcarAgendamentoDTO {
     @NotNull(message = "A nova hora de início é obrigatória")
     private LocalTime novaHoraInicio;
 
+    private String motivo;
+
     public LocalDate getNovaData() {
         return novaData;
     }
@@ -27,5 +29,13 @@ public class RemarcarAgendamentoDTO {
 
     public void setNovaHoraInicio(LocalTime novaHoraInicio) {
         this.novaHoraInicio = novaHoraInicio;
+    }
+
+    public String getMotivo() {
+        return motivo;
+    }
+
+    public void setMotivo(String motivo) {
+        this.motivo = motivo;
     }
 }

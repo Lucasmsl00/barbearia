@@ -26,18 +26,21 @@ public class AgendamentoService {
     private final ServicoRepository servicoRepository;
     private final ClienteRepository clienteRepository;
     private final BarbeiroRepository barbeiroRepository;
+    private final RecaptchaService recaptchaService;
 
     public AgendamentoService(
             AgendamentoRepository agendamentoRepository,
             HorarioFuncionamentoRepository horarioFuncionamentoRepository,
             ServicoRepository servicoRepository,
             ClienteRepository clienteRepository,
-            BarbeiroRepository barbeiroRepository) {
+            BarbeiroRepository barbeiroRepository,
+            RecaptchaService recaptchaService) {
         this.agendamentoRepository = agendamentoRepository;
         this.horarioFuncionamentoRepository = horarioFuncionamentoRepository;
         this.servicoRepository = servicoRepository;
         this.clienteRepository = clienteRepository;
         this.barbeiroRepository = barbeiroRepository;
+        this.recaptchaService = recaptchaService;
     }
 
     public List<LocalTime> buscarHorariosDisponiveis(UUID barbeiroId, UUID servicoId, LocalDate data) {
@@ -87,6 +90,10 @@ public class AgendamentoService {
 
     @Transactional
     public Agendamento criarAgendamento(AgendamentoRequestDTO dto) {
+        if (!recaptchaService.validar(dto.getCaptchaToken())) {
+            throw new BusinessException("Verificação de segurança falhou. Marque o captcha e tente novamente.");
+        }
+
         Cliente cliente = clienteRepository.findByTelefone(dto.getTelefoneCliente())
                 .orElseGet(() -> {
                     Cliente novoCliente = new Cliente();
@@ -134,7 +141,7 @@ public class AgendamentoService {
     }
 
     @Transactional
-    public Agendamento remarcarAgendamento(UUID idAntigo, LocalDate novaData, LocalTime novaHoraInicio, UUID barbeiroAutenticadoId) {
+    public Agendamento remarcarAgendamento(UUID idAntigo, LocalDate novaData, LocalTime novaHoraInicio, String motivo, UUID barbeiroAutenticadoId) {
         Agendamento agendamentoAntigo = agendamentoRepository.findById(idAntigo)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
 
@@ -150,6 +157,7 @@ public class AgendamentoService {
         validarDisponibilidade(agendamentoAntigo.getBarbeiro().getId(), novaData, novaHoraInicio, novaHoraFim, idAntigo);
 
         agendamentoAntigo.setStatus(StatusAgendamento.REMARCADO);
+        agendamentoAntigo.setMotivoRemarcacao(motivo != null && !motivo.isBlank() ? motivo.trim() : null);
         agendamentoRepository.save(agendamentoAntigo);
 
         Agendamento novoAgendamento = new Agendamento();

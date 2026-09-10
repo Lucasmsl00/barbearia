@@ -27,6 +27,8 @@ public class AgendamentoRequestDTO {
     @NotNull(message = "A hora de início é obrigatória")
     private LocalTime horaInicio;
 
+    private String captchaToken;
+
     public AgendamentoRequestDTO() {}
 
     public String getNomeCliente() {
@@ -75,5 +77,13 @@ public class AgendamentoRequestDTO {
 
     public void setHoraInicio(LocalTime horaInicio) {
         this.horaInicio = horaInicio;
+    }
+
+    public String getCaptchaToken() {
+        return captchaToken;
+    }
+
+    public void setCaptchaToken(String captchaToken) {
+        this.captchaToken = captchaToken;
     }
 }

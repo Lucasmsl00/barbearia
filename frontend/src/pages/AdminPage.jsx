@@ -293,6 +293,7 @@ function AbaAgenda() {
   const [remarcando, setRemarcando] = useState(null);
   const [novaData, setNovaData] = useState("");
   const [novaHora, setNovaHora] = useState("");
+  const [motivo, setMotivo] = useState("");
   const [erro, setErro] = useState("");
 
   function carregar() {
@@ -322,8 +323,10 @@ function AbaAgenda() {
       await api.patch(`/api/agendamentos/${id}/remarcar`, {
         novaData,
         novaHoraInicio: novaHora,
+        motivo,
       });
       setRemarcando(null);
+      setMotivo("");
       carregar();
     } catch (err) {
       setErro(err.response?.data?.message || "Não foi possível remarcar");
@@ -407,6 +410,7 @@ function AbaAgenda() {
                       setRemarcando(ag.id);
                       setNovaData(ag.data);
                       setNovaHora(ag.horaInicio.slice(0, 5));
+                      setMotivo("");
                       setErro("");
                     }}
                   >
@@ -416,17 +420,35 @@ function AbaAgenda() {
               )}
 
               {remarcando === ag.id && (
-                <div className="mt-3 flex flex-wrap items-end gap-2 rounded-lg bg-neutral-50 p-3">
-                  <Input label="Nova data" type="date" value={novaData} onChange={(e) => setNovaData(e.target.value)} className="w-auto" />
-                  <Input label="Nova hora" type="time" value={novaHora} onChange={(e) => setNovaHora(e.target.value)} className="w-auto" />
-                  <BotaoPrimario onClick={() => confirmarRemarcacao(ag.id)} className="px-3 py-2 text-xs">
-                    Confirmar
-                  </BotaoPrimario>
-                  <BotaoSecundario onClick={() => setRemarcando(null)} className="px-3 py-2 text-xs">
-                    Cancelar
-                  </BotaoSecundario>
-                  {erro && <p className="w-full text-xs text-red-600">{erro}</p>}
+                <div className="mt-3 space-y-2 rounded-lg bg-neutral-50 p-3">
+                  <div className="flex flex-wrap items-end gap-2">
+                    <Input label="Nova data" type="date" value={novaData} onChange={(e) => setNovaData(e.target.value)} className="w-auto" />
+                    <Input label="Nova hora" type="time" value={novaHora} onChange={(e) => setNovaHora(e.target.value)} className="w-auto" />
+                  </div>
+                  <Input
+                    label="Motivo (opcional)"
+                    type="text"
+                    value={motivo}
+                    onChange={(e) => setMotivo(e.target.value)}
+                    placeholder="Ex: cliente pediu pra trocar o dia"
+                    maxLength={255}
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <BotaoPrimario onClick={() => confirmarRemarcacao(ag.id)} className="px-3 py-2 text-xs">
+                      Confirmar
+                    </BotaoPrimario>
+                    <BotaoSecundario onClick={() => setRemarcando(null)} className="px-3 py-2 text-xs">
+                      Cancelar
+                    </BotaoSecundario>
+                  </div>
+                  {erro && <p className="text-xs text-red-600">{erro}</p>}
                 </div>
+              )}
+
+              {ag.status === "REMARCADO" && ag.motivoRemarcacao && (
+                <p className="mt-2 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-500">
+                  <span className="font-medium text-neutral-600">Motivo da remarcação:</span> {ag.motivoRemarcacao}
+                </p>
               )}
             </Card>
           );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../api/client";
 
 function hojeISO() {
@@ -32,6 +32,31 @@ export default function AgendarPage() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState(null);
 
+  const captchaRef = useRef(null);
+  const captchaWidgetId = useRef(null);
+
+  // renderiza o widget do reCAPTCHA assim que ele aparece na tela (depois que o cliente escolhe o horário)
+  useEffect(() => {
+    if (!horaSelecionada) return;
+
+    let cancelado = false;
+    function tentarRenderizar() {
+      if (cancelado) return;
+      if (window.grecaptcha && window.grecaptcha.render && captchaRef.current && captchaWidgetId.current === null) {
+        captchaWidgetId.current = window.grecaptcha.render(captchaRef.current, {
+          sitekey: import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+        });
+      } else if (!window.grecaptcha) {
+        setTimeout(tentarRenderizar, 300);
+      }
+    }
+    tentarRenderizar();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [horaSelecionada]);
+
   useEffect(() => {
     api.get("/api/barbeiros").then((res) => {
       setBarbeiros(res.data);
@@ -43,6 +68,7 @@ export default function AgendarPage() {
   useEffect(() => {
     setHoraSelecionada("");
     setHorarios([]);
+    captchaWidgetId.current = null;
     if (!barbeiroId || !servicoId || !data) return;
 
     setCarregandoHorarios(true);
@@ -58,6 +84,14 @@ export default function AgendarPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setErro("");
+
+    const captchaToken =
+      captchaWidgetId.current !== null ? window.grecaptcha?.getResponse(captchaWidgetId.current) : "";
+    if (!captchaToken) {
+      setErro("Marque o captcha \"Não sou um robô\" pra confirmar o agendamento.");
+      return;
+    }
+
     setEnviando(true);
     try {
       const { data: agendamento } = await api.post("/api/agendamentos", {
@@ -67,10 +101,12 @@ export default function AgendarPage() {
         servicoId,
         data,
         horaInicio: horaSelecionada,
+        captchaToken,
       });
       setSucesso(agendamento);
     } catch (err) {
       setErro(err.response?.data?.message || "Não foi possível agendar. Tente outro horário.");
+      if (captchaWidgetId.current !== null) window.grecaptcha?.reset(captchaWidgetId.current);
     } finally {
       setEnviando(false);
     }
@@ -91,6 +127,7 @@ export default function AgendarPage() {
             setHoraSelecionada("");
             setNomeCliente("");
             setTelefoneCliente("");
+            captchaWidgetId.current = null;
           }}
           className="mt-4 rounded-md bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700"
         >
@@ -207,6 +244,8 @@ export default function AgendarPage() {
             </div>
           </>
         )}
+
+        {horaSelecionada && <div ref={captchaRef} />}
 
         {erro && <p className="text-sm text-red-600">{erro}</p>}
 

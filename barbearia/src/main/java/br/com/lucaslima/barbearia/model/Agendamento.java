@@ -49,6 +49,9 @@ public class Agendamento {
     @JoinColumn(name = "agendamento_origem_id")
     private Agendamento agendamentoOrigem;
 
+    @Column(name = "motivo_remarcacao")
+    private String motivoRemarcacao;
+
     public Agendamento() {}
 
     public UUID getId() {
@@ -117,5 +120,13 @@ public class Agendamento {
 
     public void setAgendamentoOrigem(Agendamento agendamentoOrigem) {
         this.agendamentoOrigem = agendamentoOrigem;
+    }
+
+    public String getMotivoRemarcacao() {
+        return motivoRemarcacao;
+    }
+
+    public void setMotivoRemarcacao(String motivoRemarcacao) {
+        this.motivoRemarcacao = motivoRemarcacao;
     }
 }

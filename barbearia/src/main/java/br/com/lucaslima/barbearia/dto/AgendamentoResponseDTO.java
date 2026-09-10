@@ -19,6 +19,7 @@ public class AgendamentoResponseDTO {
     private LocalTime horaFim;
     private StatusAgendamento status;
     private UUID agendamentoOrigemId;
+    private String motivoRemarcacao;
 
     public AgendamentoResponseDTO() {}
 
@@ -35,6 +36,7 @@ public class AgendamentoResponseDTO {
         this.agendamentoOrigemId = agendamento.getAgendamentoOrigem() != null
                 ? agendamento.getAgendamentoOrigem().getId()
                 : null;
+        this.motivoRemarcacao = agendamento.getMotivoRemarcacao();
     }
 
     public UUID getId() {
@@ -75,5 +77,9 @@ public class AgendamentoResponseDTO {
 
     public UUID getAgendamentoOrigemId() {
         return agendamentoOrigemId;
+    }
+
+    public String getMotivoRemarcacao() {
+        return motivoRemarcacao;
     }
 }

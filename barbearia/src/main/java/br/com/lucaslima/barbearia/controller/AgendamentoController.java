@@ -70,7 +70,7 @@ public class AgendamentoController {
             @PathVariable UUID id,
             @Valid @RequestBody RemarcarAgendamentoDTO dto) {
         UUID barbeiroId = currentUserService.getBarbeiroAutenticado().getId();
-        Agendamento novoAgendamento = agendamentoService.remarcarAgendamento(id, dto.getNovaData(), dto.getNovaHoraInicio(), barbeiroId);
+        Agendamento novoAgendamento = agendamentoService.remarcarAgendamento(id, dto.getNovaData(), dto.getNovaHoraInicio(), dto.getMotivo(), barbeiroId);
         return ResponseEntity.ok(new AgendamentoResponseDTO(novoAgendamento));
     }
 

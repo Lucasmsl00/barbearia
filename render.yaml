@@ -15,3 +15,7 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
+      - key: RECAPTCHA_ENABLED
+        value: "true"
+      - key: RECAPTCHA_SECRET_KEY
+        sync: false
