@@ -13,6 +13,7 @@ public class RelatorioResponseDTO {
     private final long totalAtendimentos;
     private final Map<String, Long> atendimentosPorStatus;
     private final List<ServicoRankingDTO> servicosMaisPedidos;
+    private final List<HorarioPicoDTO> horariosPico;
     private final double taxaCancelamento;
     private final double taxaRemarcacao;
 
@@ -23,6 +24,7 @@ public class RelatorioResponseDTO {
             long totalAtendimentos,
             Map<String, Long> atendimentosPorStatus,
             List<ServicoRankingDTO> servicosMaisPedidos,
+            List<HorarioPicoDTO> horariosPico,
             double taxaCancelamento,
             double taxaRemarcacao
     ) {
@@ -32,6 +34,7 @@ public class RelatorioResponseDTO {
         this.totalAtendimentos = totalAtendimentos;
         this.atendimentosPorStatus = atendimentosPorStatus;
         this.servicosMaisPedidos = servicosMaisPedidos;
+        this.horariosPico = horariosPico;
         this.taxaCancelamento = taxaCancelamento;
         this.taxaRemarcacao = taxaRemarcacao;
     }
@@ -58,6 +61,10 @@ public class RelatorioResponseDTO {
 
     public List<ServicoRankingDTO> getServicosMaisPedidos() {
         return servicosMaisPedidos;
+    }
+
+    public List<HorarioPicoDTO> getHorariosPico() {
+        return horariosPico;
     }
 
     public double getTaxaCancelamento() {

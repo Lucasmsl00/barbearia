@@ -3,11 +3,14 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { business } from "../config/business";
 
+const PAGINAS_IMERSIVAS = ["/", "/login", "/registrar"];
+
 export default function Layout({ children }) {
   const { barbeiro, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const isLanding = location.pathname === "/";
+  const isImersiva = PAGINAS_IMERSIVAS.includes(location.pathname);
+  const isAdmin = location.pathname === "/admin";
   const [menuAberto, setMenuAberto] = useState(false);
 
   function handleLogout() {
@@ -23,33 +26,40 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
       <header className="sticky top-0 z-20 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <Link to="/" onClick={fecharMenu} className="text-lg font-semibold tracking-tight text-white">
-            💈 <span className="text-amber-500">{business.nome}</span>
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          <Link to="/" onClick={fecharMenu} className="flex items-center gap-2 text-lg font-semibold tracking-tight text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/15 text-base">💈</span>
+            <span className="text-amber-500">{business.nome}</span>
           </Link>
 
           {/* nav desktop */}
-          <nav className="hidden items-center gap-4 text-sm sm:flex">
-            <Link to="/" className="text-neutral-400 hover:text-white">
+          <nav className="hidden items-center gap-5 text-sm sm:flex">
+            <Link to="/" className="text-neutral-400 transition hover:text-white">
               Início
             </Link>
             <Link
               to="/agendar"
-              className="rounded-md bg-amber-500 px-3 py-1.5 font-medium text-neutral-950 hover:bg-amber-400"
+              className="rounded-full bg-amber-500 px-4 py-2 font-semibold text-neutral-950 transition hover:bg-amber-400"
             >
               Agendar
             </Link>
             {barbeiro ? (
               <>
-                <Link to="/admin" className="text-neutral-400 hover:text-white">
+                <Link to="/admin" className="text-neutral-400 transition hover:text-white">
                   Painel
                 </Link>
-                <button onClick={handleLogout} className="text-neutral-400 hover:text-white">
-                  Sair
-                </button>
+                <span className="h-5 w-px bg-neutral-800" />
+                <div className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-800 text-xs font-semibold text-amber-400">
+                    {barbeiro.nome?.[0]?.toUpperCase()}
+                  </span>
+                  <button onClick={handleLogout} className="text-neutral-400 transition hover:text-white">
+                    Sair
+                  </button>
+                </div>
               </>
             ) : (
-              <Link to="/login" className="text-neutral-400 hover:text-white">
+              <Link to="/login" className="text-neutral-400 transition hover:text-white">
                 Sou barbeiro
               </Link>
             )}
@@ -60,7 +70,7 @@ export default function Layout({ children }) {
             <Link
               to="/agendar"
               onClick={fecharMenu}
-              className="rounded-md bg-amber-500 px-3 py-1.5 text-sm font-medium text-neutral-950 hover:bg-amber-400"
+              className="rounded-full bg-amber-500 px-3 py-1.5 text-sm font-semibold text-neutral-950 hover:bg-amber-400"
             >
               Agendar
             </Link>
@@ -106,11 +116,11 @@ export default function Layout({ children }) {
           </nav>
         )}
       </header>
-      {isLanding ? (
+      {isImersiva ? (
         <main>{children}</main>
       ) : (
-        <main className="mx-auto max-w-4xl bg-neutral-50 px-4 py-8 text-neutral-900">
-          <div className="min-h-[70vh]">{children}</div>
+        <main className="min-h-[calc(100vh-57px)] bg-neutral-50 text-neutral-900">
+          <div className={`mx-auto px-4 py-8 sm:py-10 ${isAdmin ? "max-w-6xl" : "max-w-4xl"}`}>{children}</div>
         </main>
       )}
     </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/client";
-import PlaceholderImage from "../components/PlaceholderImage";
+import SiteImage from "../components/SiteImage";
 import { business } from "../config/business";
 
 const DIAS_LABEL = {
@@ -86,7 +86,7 @@ export default function LandingPage() {
       {/* SOBRE */}
       <section className="bg-white py-20">
         <div className="mx-auto grid max-w-5xl grid-cols-1 items-center gap-10 px-4 sm:grid-cols-2">
-          <PlaceholderImage label="Foto do barbeiro trabalhando / fachada da barbearia" className="h-80 rounded-lg" />
+          <SiteImage slot="sobre" label="Foto do barbeiro trabalhando / fachada da barbearia" className="h-80 w-full rounded-lg" />
           <div>
             <span className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-500">Sobre nós</span>
             <h2 className="mt-2 text-3xl font-bold text-neutral-900">Tradição e técnica em cada atendimento</h2>
@@ -129,19 +129,16 @@ export default function LandingPage() {
         <SectionTitle eyebrow="Nosso trabalho" title="Galeria" />
         <div className="mx-auto mt-10 grid max-w-5xl grid-cols-2 gap-3 px-4 sm:grid-cols-3">
           {[
-            "Corte finalizado — cliente 1",
-            "Barba feita na navalha",
-            "Ambiente interno da barbearia",
-            "Corte degradê",
-            "Estação de atendimento",
-            "Cliente satisfeito no espelho",
-          ].map((label) => (
-            <PlaceholderImage key={label} label={label} className="aspect-square rounded-md" />
+            { slot: "galeria-1", label: "Corte finalizado — cliente 1" },
+            { slot: "galeria-2", label: "Barba feita na navalha" },
+            { slot: "galeria-3", label: "Ambiente interno da barbearia" },
+            { slot: "galeria-4", label: "Corte degradê" },
+            { slot: "galeria-5", label: "Estação de atendimento" },
+            { slot: "galeria-6", label: "Cliente satisfeito no espelho" },
+          ].map(({ slot, label }) => (
+            <SiteImage key={slot} slot={slot} label={label} className="aspect-square w-full rounded-md" />
           ))}
         </div>
-        <p className="mt-4 text-center text-xs text-neutral-400">
-          Fotos ilustrativas — substitua pelos cliques reais da barbearia.
-        </p>
       </section>
 
       {/* HORÁRIO E CONTATO */}

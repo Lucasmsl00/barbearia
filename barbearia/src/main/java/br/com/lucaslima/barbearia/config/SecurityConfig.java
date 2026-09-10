@@ -72,6 +72,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/barbeiros").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/agendamentos/horarios-disponiveis").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/horarios-funcionamento/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/imagens/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/agendamentos").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         // tudo mais exige o barbeiro logado (JWT)

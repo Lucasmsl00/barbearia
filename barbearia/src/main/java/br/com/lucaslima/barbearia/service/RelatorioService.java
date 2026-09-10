@@ -1,5 +1,6 @@
 package br.com.lucaslima.barbearia.service;
 
+import br.com.lucaslima.barbearia.dto.HorarioPicoDTO;
 import br.com.lucaslima.barbearia.dto.RelatorioResponseDTO;
 import br.com.lucaslima.barbearia.dto.ServicoRankingDTO;
 import br.com.lucaslima.barbearia.model.Agendamento;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -55,7 +57,16 @@ public class RelatorioService {
         double taxaCancelamento = total == 0 ? 0.0 : arredondar(porStatus.get(StatusAgendamento.CANCELADO.name()) * 100.0 / total);
         double taxaRemarcacao = total == 0 ? 0.0 : arredondar(porStatus.get(StatusAgendamento.REMARCADO.name()) * 100.0 / total);
 
-        return new RelatorioResponseDTO(inicio, fim, faturamento, total, porStatus, servicosMaisPedidos, taxaCancelamento, taxaRemarcacao);
+        Map<Integer, Long> porHora = new TreeMap<>();
+        agendamentos.stream()
+                .filter(a -> a.getStatus() != StatusAgendamento.CANCELADO && a.getStatus() != StatusAgendamento.REMARCADO)
+                .forEach(a -> porHora.merge(a.getHoraInicio().getHour(), 1L, Long::sum));
+
+        List<HorarioPicoDTO> horariosPico = porHora.entrySet().stream()
+                .map(e -> new HorarioPicoDTO(String.format("%02dh", e.getKey()), e.getValue()))
+                .toList();
+
+        return new RelatorioResponseDTO(inicio, fim, faturamento, total, porStatus, servicosMaisPedidos, horariosPico, taxaCancelamento, taxaRemarcacao);
     }
 
     private double arredondar(double valor) {

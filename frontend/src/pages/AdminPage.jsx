@@ -8,14 +8,203 @@ function hojeISO() {
   return new Date(hoje.getTime() - offset * 60000).toISOString().slice(0, 10);
 }
 
-const STATUS_COR = {
-  PENDENTE: "bg-yellow-100 text-yellow-800",
-  CONFIRMADO: "bg-blue-100 text-blue-800",
-  CANCELADO: "bg-red-100 text-red-800",
-  CONCLUIDO: "bg-green-100 text-green-800",
-  REMARCADO: "bg-neutral-200 text-neutral-600",
-};
+function somarDias(iso, dias) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + dias);
+  return dt.toISOString().slice(0, 10);
+}
 
+function formatarDataLabel(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short", timeZone: "UTC" });
+}
+
+/* ---------- ícones ---------- */
+const iconCls = "h-4 w-4";
+function IconCalendar({ className = iconCls }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 10h18M8 3v4M16 3v4" strokeLinecap="round" />
+    </svg>
+  );
+}
+function IconScissors({ className = iconCls }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <circle cx="6" cy="6" r="2.5" />
+      <circle cx="6" cy="18" r="2.5" />
+      <path d="M8.5 7.5 20 18M8.5 16.5 20 6" strokeLinecap="round" />
+    </svg>
+  );
+}
+function IconClock({ className = iconCls }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3.5 2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function IconChart({ className = iconCls }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <path d="M4 20V10M12 20V4M20 20v-7" strokeLinecap="round" />
+    </svg>
+  );
+}
+function IconUser({ className = iconCls }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+function IconImage({ className = iconCls }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <circle cx="9" cy="10" r="1.7" />
+      <path d="m4 18 5.5-5.5a2 2 0 0 1 2.8 0L18 18" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function IconUpload({ className = "h-3.5 w-3.5" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M12 15V4M8 8l4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function IconPhone({ className = "h-3.5 w-3.5" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M6.5 3.5h3l1.5 4-2 1.5a11 11 0 0 0 5 5l1.5-2 4 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 4.5 5.5a2 2 0 0 1 2-2Z" />
+    </svg>
+  );
+}
+function IconChevronLeft({ className = "h-4 w-4" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+      <path d="m15 6-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function IconChevronRight({ className = "h-4 w-4" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+      <path d="m9 6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function IconInbox({ className = "h-9 w-9" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" className={className}>
+      <path d="M4 12h4l2 3h4l2-3h4" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="3" y="6" width="18" height="14" rx="2" />
+    </svg>
+  );
+}
+function IconMoney({ className = "h-5 w-5" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <rect x="2.5" y="6" width="19" height="12" rx="2" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+function IconPlus({ className = "h-4 w-4" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className={className}>
+      <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+    </svg>
+  );
+}
+function IconTrash({ className = "h-4 w-4" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function Spinner({ className = "h-4 w-4" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={`animate-spin ${className}`}>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/* ---------- primitivos visuais ---------- */
+function Card({ className = "", children }) {
+  return <div className={`rounded-xl border border-neutral-200 bg-white shadow-sm ${className}`}>{children}</div>;
+}
+
+function BotaoPrimario({ className = "", ...props }) {
+  return (
+    <button
+      {...props}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-40 ${className}`}
+    />
+  );
+}
+
+function BotaoSecundario({ className = "", ...props }) {
+  return (
+    <button
+      {...props}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3.5 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40 ${className}`}
+    />
+  );
+}
+
+function Input({ label, className = "", ...props }) {
+  return (
+    <label className="block">
+      {label && <span className="mb-1 block text-xs font-medium text-neutral-500">{label}</span>}
+      <input
+        {...props}
+        className={`w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 transition focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 ${className}`}
+      />
+    </label>
+  );
+}
+
+function Toggle({ checked, onChange, label }) {
+  return (
+    <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-neutral-600">
+      <span
+        onClick={() => onChange(!checked)}
+        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${
+          checked ? "bg-amber-500" : "bg-neutral-300"
+        }`}
+      >
+        <span
+          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition ${
+            checked ? "translate-x-[18px]" : "translate-x-1"
+          }`}
+        />
+      </span>
+      {label}
+    </label>
+  );
+}
+
+function EmptyState({ icon, title, subtitle }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50/50 py-14 text-center">
+      <span className="text-neutral-300">{icon}</span>
+      <p className="mt-3 text-sm font-medium text-neutral-600">{title}</p>
+      {subtitle && <p className="mt-1 text-xs text-neutral-400">{subtitle}</p>}
+    </div>
+  );
+}
+
+/* ---------- Minha conta ---------- */
 function AbaConta() {
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
@@ -49,54 +238,53 @@ function AbaConta() {
   }
 
   return (
-    <div className="max-w-sm">
-      <h2 className="text-lg font-semibold">Trocar senha</h2>
-      <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+    <Card className="max-w-sm p-6">
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+          <IconUser />
+        </span>
         <div>
-          <label className="block text-sm font-medium text-neutral-700">Senha atual</label>
-          <input
-            type="password"
-            value={senhaAtual}
-            onChange={(e) => setSenhaAtual(e.target.value)}
-            required
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
+          <h2 className="text-sm font-semibold text-neutral-900">Trocar senha</h2>
+          <p className="text-xs text-neutral-500">Mantenha seu acesso seguro</p>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-neutral-700">Nova senha</label>
-          <input
-            type="password"
-            value={novaSenha}
-            onChange={(e) => setNovaSenha(e.target.value)}
-            minLength={6}
-            required
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-neutral-700">Confirmar nova senha</label>
-          <input
-            type="password"
-            value={confirmarSenha}
-            onChange={(e) => setConfirmarSenha(e.target.value)}
-            minLength={6}
-            required
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
-        </div>
-        {erro && <p className="text-sm text-red-600">{erro}</p>}
-        {sucesso && <p className="text-sm text-green-600">Senha alterada com sucesso.</p>}
-        <button
-          type="submit"
-          disabled={enviando}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-40"
-        >
+      </div>
+      <form onSubmit={handleSubmit} className="mt-5 space-y-3">
+        <Input label="Senha atual" type="password" value={senhaAtual} onChange={(e) => setSenhaAtual(e.target.value)} required />
+        <Input
+          label="Nova senha"
+          type="password"
+          value={novaSenha}
+          onChange={(e) => setNovaSenha(e.target.value)}
+          minLength={6}
+          required
+        />
+        <Input
+          label="Confirmar nova senha"
+          type="password"
+          value={confirmarSenha}
+          onChange={(e) => setConfirmarSenha(e.target.value)}
+          minLength={6}
+          required
+        />
+        {erro && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
+        {sucesso && <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">Senha alterada com sucesso.</p>}
+        <BotaoPrimario type="submit" disabled={enviando} className="w-full">
+          {enviando && <Spinner />}
           {enviando ? "Salvando..." : "Salvar nova senha"}
-        </button>
+        </BotaoPrimario>
       </form>
-    </div>
+    </Card>
   );
 }
+
+/* ---------- Agenda ---------- */
+const STATUS_ESTILO = {
+  PENDENTE: { dot: "bg-yellow-500", pill: "bg-yellow-50 text-yellow-800 ring-1 ring-yellow-200" },
+  CONFIRMADO: { dot: "bg-blue-500", pill: "bg-blue-50 text-blue-800 ring-1 ring-blue-200" },
+  CANCELADO: { dot: "bg-red-500", pill: "bg-red-50 text-red-700 ring-1 ring-red-200" },
+  CONCLUIDO: { dot: "bg-green-500", pill: "bg-green-50 text-green-800 ring-1 ring-green-200" },
+  REMARCADO: { dot: "bg-neutral-400", pill: "bg-neutral-100 text-neutral-600 ring-1 ring-neutral-200" },
+};
 
 function AbaAgenda() {
   const [data, setData] = useState(hojeISO());
@@ -144,116 +332,121 @@ function AbaAgenda() {
 
   return (
     <div>
-      <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-neutral-700">Data</label>
-        <input
-          type="date"
-          value={data}
-          onChange={(e) => setData(e.target.value)}
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
-        />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5">
+          <BotaoSecundario onClick={() => setData((d) => somarDias(d, -1))} className="px-2.5" aria-label="Dia anterior">
+            <IconChevronLeft />
+          </BotaoSecundario>
+          <div className="flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-1.5">
+            <IconCalendar className="h-4 w-4 text-neutral-400" />
+            <input
+              type="date"
+              value={data}
+              onChange={(e) => setData(e.target.value)}
+              className="bg-transparent text-sm text-neutral-900 focus:outline-none"
+            />
+          </div>
+          <BotaoSecundario onClick={() => setData((d) => somarDias(d, 1))} className="px-2.5" aria-label="Próximo dia">
+            <IconChevronRight />
+          </BotaoSecundario>
+          {data !== hojeISO() && <BotaoSecundario onClick={() => setData(hojeISO())}>Hoje</BotaoSecundario>}
+        </div>
+        <span className="text-sm capitalize text-neutral-500">{formatarDataLabel(data)}</span>
       </div>
 
       <div className="mt-4 space-y-3">
-        {carregando && <p className="text-sm text-neutral-500">Carregando...</p>}
-        {!carregando && agendamentos.length === 0 && (
-          <p className="text-sm text-neutral-500">Nenhum agendamento nesse dia.</p>
-        )}
-        {agendamentos.map((ag) => (
-          <div key={ag.id} className="rounded-lg border border-neutral-200 bg-white p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="font-medium">
-                  {ag.horaInicio.slice(0, 5)} - {ag.horaFim.slice(0, 5)} · {ag.nomeServico}
-                </p>
-                <p className="text-sm text-neutral-600">
-                  {ag.nomeCliente} · {ag.telefoneCliente}
-                </p>
-              </div>
-              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COR[ag.status]}`}>
-                {ag.status}
-              </span>
-            </div>
-
-            {(ag.status === "PENDENTE" || ag.status === "CONFIRMADO") && (
-              <div className="mt-3 flex gap-2">
-                <button
-                  onClick={() => concluir(ag.id)}
-                  className="rounded-md border border-green-300 px-3 py-1 text-xs text-green-700 hover:bg-green-50"
-                >
-                  Concluir
-                </button>
-                <button
-                  onClick={() => cancelar(ag.id)}
-                  className="rounded-md border border-red-300 px-3 py-1 text-xs text-red-700 hover:bg-red-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={() => {
-                    setRemarcando(ag.id);
-                    setNovaData(ag.data);
-                    setNovaHora(ag.horaInicio.slice(0, 5));
-                    setErro("");
-                  }}
-                  className="rounded-md border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-50"
-                >
-                  Remarcar
-                </button>
-              </div>
-            )}
-
-            {remarcando === ag.id && (
-              <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-neutral-100 pt-3">
-                <div>
-                  <label className="block text-xs text-neutral-500">Nova data</label>
-                  <input
-                    type="date"
-                    value={novaData}
-                    onChange={(e) => setNovaData(e.target.value)}
-                    className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-neutral-500">Nova hora</label>
-                  <input
-                    type="time"
-                    value={novaHora}
-                    onChange={(e) => setNovaHora(e.target.value)}
-                    className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
-                  />
-                </div>
-                <button
-                  onClick={() => confirmarRemarcacao(ag.id)}
-                  className="rounded-md bg-neutral-900 px-3 py-1.5 text-xs text-white hover:bg-neutral-700"
-                >
-                  Confirmar
-                </button>
-                <button
-                  onClick={() => setRemarcando(null)}
-                  className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs hover:bg-neutral-50"
-                >
-                  Cancelar
-                </button>
-                {erro && <p className="w-full text-xs text-red-600">{erro}</p>}
-              </div>
-            )}
+        {carregando && (
+          <div className="flex items-center justify-center gap-2 py-14 text-sm text-neutral-500">
+            <Spinner /> Carregando agenda...
           </div>
-        ))}
+        )}
+        {!carregando && agendamentos.length === 0 && (
+          <EmptyState icon={<IconInbox />} title="Nenhum agendamento nesse dia" subtitle="A agenda está livre." />
+        )}
+        {agendamentos.map((ag) => {
+          const estilo = STATUS_ESTILO[ag.status] || STATUS_ESTILO.PENDENTE;
+          return (
+            <Card key={ag.id} className="p-4 transition hover:shadow-md">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-neutral-900">
+                    {ag.horaInicio.slice(0, 5)} – {ag.horaFim.slice(0, 5)}
+                    <span className="ml-2 font-normal text-neutral-500">· {ag.nomeServico}</span>
+                  </p>
+                  <p className="mt-1 flex items-center gap-1.5 text-sm text-neutral-500">
+                    <IconUser className="h-3.5 w-3.5" />
+                    {ag.nomeCliente}
+                    <span className="text-neutral-300">·</span>
+                    <IconPhone />
+                    {ag.telefoneCliente}
+                  </p>
+                </div>
+                <span className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${estilo.pill}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${estilo.dot}`} />
+                  {ag.status}
+                </span>
+              </div>
+
+              {(ag.status === "PENDENTE" || ag.status === "CONFIRMADO") && (
+                <div className="mt-3 flex flex-wrap gap-2 border-t border-neutral-100 pt-3">
+                  <button
+                    onClick={() => concluir(ag.id)}
+                    className="rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 transition hover:bg-green-100"
+                  >
+                    Concluir
+                  </button>
+                  <button
+                    onClick={() => cancelar(ag.id)}
+                    className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100"
+                  >
+                    Cancelar
+                  </button>
+                  <BotaoSecundario
+                    className="px-3 py-1.5 text-xs"
+                    onClick={() => {
+                      setRemarcando(ag.id);
+                      setNovaData(ag.data);
+                      setNovaHora(ag.horaInicio.slice(0, 5));
+                      setErro("");
+                    }}
+                  >
+                    Remarcar
+                  </BotaoSecundario>
+                </div>
+              )}
+
+              {remarcando === ag.id && (
+                <div className="mt-3 flex flex-wrap items-end gap-2 rounded-lg bg-neutral-50 p-3">
+                  <Input label="Nova data" type="date" value={novaData} onChange={(e) => setNovaData(e.target.value)} className="w-auto" />
+                  <Input label="Nova hora" type="time" value={novaHora} onChange={(e) => setNovaHora(e.target.value)} className="w-auto" />
+                  <BotaoPrimario onClick={() => confirmarRemarcacao(ag.id)} className="px-3 py-2 text-xs">
+                    Confirmar
+                  </BotaoPrimario>
+                  <BotaoSecundario onClick={() => setRemarcando(null)} className="px-3 py-2 text-xs">
+                    Cancelar
+                  </BotaoSecundario>
+                  {erro && <p className="w-full text-xs text-red-600">{erro}</p>}
+                </div>
+              )}
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
 }
 
+/* ---------- Serviços ---------- */
 function AbaServicos() {
   const [servicos, setServicos] = useState([]);
   const [nome, setNome] = useState("");
   const [duracao, setDuracao] = useState("");
   const [preco, setPreco] = useState("");
   const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(true);
 
   function carregar() {
-    api.get("/api/servicos").then((res) => setServicos(res.data));
+    api.get("/api/servicos").then((res) => setServicos(res.data)).finally(() => setCarregando(false));
   }
 
   useEffect(carregar, []);
@@ -283,62 +476,81 @@ function AbaServicos() {
   }
 
   return (
-    <div>
-      <form onSubmit={criar} className="flex flex-wrap items-end gap-3 rounded-lg border border-neutral-200 bg-white p-4">
-        <div>
-          <label className="block text-xs text-neutral-500">Nome</label>
-          <input
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            required
-            className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
-          />
+    <div className="space-y-5">
+      <Card className="p-5">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+            <IconPlus />
+          </span>
+          <h2 className="text-sm font-semibold text-neutral-900">Novo serviço</h2>
         </div>
-        <div>
-          <label className="block text-xs text-neutral-500">Duração (min)</label>
-          <input
+        <form onSubmit={criar} className="mt-4 flex flex-wrap items-end gap-3">
+          <div className="min-w-[10rem] flex-1">
+            <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required placeholder="Corte de cabelo" />
+          </div>
+          <Input
+            label="Duração (min)"
             type="number"
             value={duracao}
             onChange={(e) => setDuracao(e.target.value)}
             required
             min="1"
-            className="w-24 rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
+            className="w-28"
           />
-        </div>
-        <div>
-          <label className="block text-xs text-neutral-500">Preço (R$)</label>
-          <input
+          <Input
+            label="Preço (R$)"
             type="number"
             step="0.01"
             value={preco}
             onChange={(e) => setPreco(e.target.value)}
             required
             min="0.01"
-            className="w-28 rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
+            className="w-28"
           />
-        </div>
-        <button className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white hover:bg-neutral-700">
-          Adicionar
-        </button>
-        {erro && <p className="w-full text-xs text-red-600">{erro}</p>}
-      </form>
+          <BotaoPrimario type="submit">
+            <IconPlus className="h-4 w-4" /> Adicionar
+          </BotaoPrimario>
+        </form>
+        {erro && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
+      </Card>
 
-      <div className="mt-4 space-y-2">
-        {servicos.map((s) => (
-          <div key={s.id} className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-3">
-            <span className="text-sm">
-              {s.nome} — {s.duracaoMinutos}min — R$ {Number(s.preco).toFixed(2)}
-            </span>
-            <button onClick={() => excluir(s.id)} className="text-xs text-red-600 hover:underline">
-              Excluir
-            </button>
-          </div>
-        ))}
-      </div>
+      {carregando ? (
+        <div className="flex items-center justify-center gap-2 py-10 text-sm text-neutral-500">
+          <Spinner /> Carregando serviços...
+        </div>
+      ) : servicos.length === 0 ? (
+        <EmptyState icon={<IconScissors />} title="Nenhum serviço cadastrado" subtitle="Adicione o primeiro serviço acima." />
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {servicos.map((s) => (
+            <Card key={s.id} className="flex items-center justify-between p-4">
+              <div>
+                <p className="font-medium text-neutral-900">{s.nome}</p>
+                <p className="mt-0.5 flex items-center gap-3 text-xs text-neutral-500">
+                  <span className="flex items-center gap-1">
+                    <IconClock className="h-3.5 w-3.5" /> {s.duracaoMinutos} min
+                  </span>
+                  <span className="flex items-center gap-1 font-medium text-amber-700">
+                    <IconMoney className="h-3.5 w-3.5" /> R$ {Number(s.preco).toFixed(2)}
+                  </span>
+                </p>
+              </div>
+              <button
+                onClick={() => excluir(s.id)}
+                className="rounded-lg p-2 text-neutral-400 transition hover:bg-red-50 hover:text-red-600"
+                aria-label="Excluir serviço"
+              >
+                <IconTrash />
+              </button>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
+/* ---------- Horário de funcionamento ---------- */
 const DIAS_SEMANA = [
   { valor: "MONDAY", label: "Segunda" },
   { valor: "TUESDAY", label: "Terça" },
@@ -395,12 +607,12 @@ function AbaHorarios({ barbeiroId, souDono }) {
   return (
     <div className="space-y-4">
       {souDono && barbeiros.length > 1 && (
-        <div>
-          <label className="block text-sm font-medium text-neutral-700">Barbeiro</label>
+        <Card className="flex items-center gap-3 p-4">
+          <span className="text-sm font-medium text-neutral-700">Configurando horário de</span>
           <select
             value={alvoId}
             onChange={(e) => setBarbeiroSelecionado(e.target.value)}
-            className="mt-1 rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+            className="rounded-lg border border-neutral-300 px-3 py-1.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
           >
             {barbeiros.map((b) => (
               <option key={b.id} value={b.id}>
@@ -409,11 +621,12 @@ function AbaHorarios({ barbeiroId, souDono }) {
               </option>
             ))}
           </select>
-        </div>
+        </Card>
       )}
 
-      <div className="space-y-2">
-        {erro && <p className="text-xs text-red-600">{erro}</p>}
+      {erro && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
+
+      <div className="space-y-2.5">
         {DIAS_SEMANA.map(({ valor, label }) => {
           const existente = horarioDoDia(valor);
           return (
@@ -438,62 +651,70 @@ function LinhaHorario({ label, dia, existente, onSalvar }) {
   const [almocoInicio, setAlmocoInicio] = useState(existente?.horaAlmocoInicio?.slice(0, 5) || "12:00");
   const [almocoFim, setAlmocoFim] = useState(existente?.horaAlmocoFim?.slice(0, 5) || "13:00");
   const [folga, setFolga] = useState(existente?.folga || false);
+  const [salvando, setSalvando] = useState(false);
+
+  async function handleSalvar() {
+    setSalvando(true);
+    await onSalvar(dia, abertura, fechamento, temAlmoco, almocoInicio, almocoFim, folga);
+    setSalvando(false);
+  }
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-neutral-200 bg-white p-3">
-      <span className="w-20 text-sm font-medium">{label}</span>
-      <label className="flex items-center gap-1.5 text-xs text-neutral-600">
-        <input type="checkbox" checked={folga} onChange={(e) => setFolga(e.target.checked)} />
-        Folga
-      </label>
-      {!folga && (
-        <>
-          <input
-            type="time"
-            value={abertura}
-            onChange={(e) => setAbertura(e.target.value)}
-            className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
-          />
-          <span className="text-neutral-400">até</span>
-          <input
-            type="time"
-            value={fechamento}
-            onChange={(e) => setFechamento(e.target.value)}
-            className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
-          />
-          <label className="flex items-center gap-1.5 text-xs text-neutral-600">
-            <input type="checkbox" checked={temAlmoco} onChange={(e) => setTemAlmoco(e.target.checked)} />
-            Almoço
-          </label>
-          {temAlmoco && (
-            <>
+    <Card className={`p-4 transition ${folga ? "bg-neutral-50/60" : ""}`}>
+      <div className="flex flex-wrap items-center gap-4">
+        <span className="w-20 shrink-0 text-sm font-semibold text-neutral-900">{label}</span>
+        <Toggle checked={folga} onChange={setFolga} label="Folga" />
+
+        {!folga && (
+          <>
+            <div className="flex items-center gap-1.5 text-sm">
               <input
                 type="time"
-                value={almocoInicio}
-                onChange={(e) => setAlmocoInicio(e.target.value)}
-                className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
+                value={abertura}
+                onChange={(e) => setAbertura(e.target.value)}
+                className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
               />
               <span className="text-neutral-400">até</span>
               <input
                 type="time"
-                value={almocoFim}
-                onChange={(e) => setAlmocoFim(e.target.value)}
-                className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
+                value={fechamento}
+                onChange={(e) => setFechamento(e.target.value)}
+                className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
               />
-            </>
-          )}
-        </>
-      )}
-      <button
-        onClick={() => onSalvar(dia, abertura, fechamento, temAlmoco, almocoInicio, almocoFim, folga)}
-        className="ml-auto rounded-md bg-neutral-900 px-3 py-1 text-xs text-white hover:bg-neutral-700"
-      >
-        Salvar
-      </button>
-    </div>
+            </div>
+
+            <Toggle checked={temAlmoco} onChange={setTemAlmoco} label="Almoço" />
+
+            {temAlmoco && (
+              <div className="flex items-center gap-1.5 text-sm">
+                <input
+                  type="time"
+                  value={almocoInicio}
+                  onChange={(e) => setAlmocoInicio(e.target.value)}
+                  className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                />
+                <span className="text-neutral-400">até</span>
+                <input
+                  type="time"
+                  value={almocoFim}
+                  onChange={(e) => setAlmocoFim(e.target.value)}
+                  className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        <BotaoPrimario onClick={handleSalvar} disabled={salvando} className="ml-auto px-3.5 py-1.5 text-xs">
+          {salvando && <Spinner className="h-3.5 w-3.5" />}
+          Salvar
+        </BotaoPrimario>
+      </div>
+    </Card>
   );
 }
 
+/* ---------- Relatórios ---------- */
 function inicioSemanaISO() {
   const hoje = new Date();
   const offset = hoje.getTimezoneOffset();
@@ -537,11 +758,49 @@ const STATUS_BARRA = {
   REMARCADO: "bg-neutral-400",
 };
 
+function calcularVariacao(atual, anterior) {
+  if (!anterior) return atual ? 100 : 0;
+  return Math.round(((atual - anterior) / anterior) * 1000) / 10;
+}
+
+function periodoAnterior(inicio, fim) {
+  const dias = Math.round((new Date(fim) - new Date(inicio)) / 86400000) + 1;
+  const novoFim = somarDias(inicio, -1);
+  const novoInicio = somarDias(novoFim, -(dias - 1));
+  return { inicio: novoInicio, fim: novoFim };
+}
+
+function DeltaBadge({ valor }) {
+  if (valor === null || valor === undefined || Number.isNaN(valor)) return null;
+  const positivo = valor >= 0;
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-xs font-semibold ${positivo ? "text-green-600" : "text-red-600"}`}>
+      {positivo ? "▲" : "▼"} {Math.abs(valor)}%
+    </span>
+  );
+}
+
+function StatCard({ label, value, icon, destaque, delta }) {
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-2 text-neutral-400">
+        {icon}
+        <p className="text-xs font-medium text-neutral-500">{label}</p>
+      </div>
+      <div className="mt-2 flex items-baseline gap-2">
+        <p className={`text-2xl font-bold ${destaque ? "text-amber-600" : "text-neutral-900"}`}>{value}</p>
+        <DeltaBadge valor={delta} />
+      </div>
+    </Card>
+  );
+}
+
 function AbaRelatorios() {
   const [periodo, setPeriodo] = useState("semana");
   const [dataInicio, setDataInicio] = useState(inicioSemanaISO());
   const [dataFim, setDataFim] = useState(fimSemanaISO());
   const [relatorio, setRelatorio] = useState(null);
+  const [relatorioAnterior, setRelatorioAnterior] = useState(null);
   const [carregando, setCarregando] = useState(false);
 
   function aplicarPeriodo(novoPeriodo) {
@@ -558,17 +817,37 @@ function AbaRelatorios() {
   useEffect(() => {
     if (!dataInicio || !dataFim) return;
     setCarregando(true);
-    api
-      .get("/api/relatorios", { params: { dataInicio, dataFim } })
-      .then((res) => setRelatorio(res.data))
+    const anterior = periodoAnterior(dataInicio, dataFim);
+    Promise.all([
+      api.get("/api/relatorios", { params: { dataInicio, dataFim } }),
+      api.get("/api/relatorios", { params: { dataInicio: anterior.inicio, dataFim: anterior.fim } }),
+    ])
+      .then(([atual, passado]) => {
+        setRelatorio(atual.data);
+        setRelatorioAnterior(passado.data);
+      })
       .finally(() => setCarregando(false));
   }, [dataInicio, dataFim]);
 
   const maiorContagemServico = relatorio?.servicosMaisPedidos?.[0]?.quantidade || 1;
+  const maiorContagemHora = Math.max(1, ...(relatorio?.horariosPico?.map((h) => h.quantidade) || [1]));
+
+  const concluidos = relatorio?.atendimentosPorStatus?.CONCLUIDO || 0;
+  const ticketMedio = concluidos > 0 ? Number(relatorio.faturamentoTotal) / concluidos : 0;
+  const concluidosAnterior = relatorioAnterior?.atendimentosPorStatus?.CONCLUIDO || 0;
+  const ticketMedioAnterior = concluidosAnterior > 0 ? Number(relatorioAnterior.faturamentoTotal) / concluidosAnterior : 0;
+
+  const deltaFaturamento = relatorioAnterior
+    ? calcularVariacao(Number(relatorio?.faturamentoTotal || 0), Number(relatorioAnterior.faturamentoTotal))
+    : null;
+  const deltaAtendimentos = relatorioAnterior
+    ? calcularVariacao(relatorio?.totalAtendimentos || 0, relatorioAnterior.totalAtendimentos)
+    : null;
+  const deltaTicket = relatorioAnterior ? calcularVariacao(ticketMedio, ticketMedioAnterior) : null;
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-neutral-200 bg-white p-1.5">
         {[
           ["semana", "Esta semana"],
           ["mes", "Este mês"],
@@ -577,8 +856,8 @@ function AbaRelatorios() {
           <button
             key={valor}
             onClick={() => aplicarPeriodo(valor)}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-              periodo === valor ? "bg-neutral-900 text-white" : "border border-neutral-300 text-neutral-600"
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+              periodo === valor ? "bg-amber-500 text-neutral-950" : "text-neutral-600 hover:bg-neutral-50"
             }`}
           >
             {label}
@@ -592,52 +871,54 @@ function AbaRelatorios() {
             type="date"
             value={dataInicio}
             onChange={(e) => setDataInicio(e.target.value)}
-            className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
+            className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
           />
           <span className="text-neutral-400">até</span>
           <input
             type="date"
             value={dataFim}
             onChange={(e) => setDataFim(e.target.value)}
-            className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
+            className="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
           />
         </div>
       )}
 
-      {carregando && <p className="mt-4 text-sm text-neutral-500">Carregando relatório...</p>}
+      {carregando && (
+        <div className="flex items-center justify-center gap-2 py-14 text-sm text-neutral-500">
+          <Spinner /> Carregando relatório...
+        </div>
+      )}
 
       {!carregando && relatorio && (
         <div className="mt-5 space-y-6">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-lg border border-neutral-200 bg-white p-4">
-              <p className="text-xs text-neutral-500">Faturamento</p>
-              <p className="mt-1 text-xl font-bold text-neutral-900">
-                R$ {Number(relatorio.faturamentoTotal).toFixed(2)}
-              </p>
+          <div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <StatCard
+                label="Faturamento"
+                value={`R$ ${Number(relatorio.faturamentoTotal).toFixed(2)}`}
+                icon={<IconMoney className="h-4 w-4" />}
+                destaque
+                delta={deltaFaturamento}
+              />
+              <StatCard label="Atendimentos" value={relatorio.totalAtendimentos} icon={<IconCalendar className="h-4 w-4" />} delta={deltaAtendimentos} />
+              <StatCard label="Ticket médio" value={`R$ ${ticketMedio.toFixed(2)}`} icon={<IconMoney className="h-4 w-4" />} delta={deltaTicket} />
             </div>
-            <div className="rounded-lg border border-neutral-200 bg-white p-4">
-              <p className="text-xs text-neutral-500">Atendimentos</p>
-              <p className="mt-1 text-xl font-bold text-neutral-900">{relatorio.totalAtendimentos}</p>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <StatCard label="Cancelamento" value={`${relatorio.taxaCancelamento}%`} icon={<IconChart className="h-4 w-4" />} />
+              <StatCard label="Remarcação" value={`${relatorio.taxaRemarcacao}%`} icon={<IconChart className="h-4 w-4" />} />
             </div>
-            <div className="rounded-lg border border-neutral-200 bg-white p-4">
-              <p className="text-xs text-neutral-500">Taxa de cancelamento</p>
-              <p className="mt-1 text-xl font-bold text-neutral-900">{relatorio.taxaCancelamento}%</p>
-            </div>
-            <div className="rounded-lg border border-neutral-200 bg-white p-4">
-              <p className="text-xs text-neutral-500">Taxa de remarcação</p>
-              <p className="mt-1 text-xl font-bold text-neutral-900">{relatorio.taxaRemarcacao}%</p>
-            </div>
+            <p className="mt-2 text-xs text-neutral-400">Comparado ao período anterior de mesma duração</p>
           </div>
 
-          <div>
-            <h3 className="text-sm font-semibold text-neutral-700">Atendimentos por status</h3>
-            <div className="mt-2 space-y-1.5">
+          <Card className="p-5">
+            <h3 className="text-sm font-semibold text-neutral-900">Atendimentos por status</h3>
+            <div className="mt-3 space-y-2">
               {Object.entries(relatorio.atendimentosPorStatus).map(([status, qtd]) => (
                 <div key={status} className="flex items-center gap-2 text-xs">
                   <span className="w-24 shrink-0 text-neutral-600">{STATUS_LABEL[status] || status}</span>
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100">
                     <div
-                      className={`h-full ${STATUS_BARRA[status] || "bg-neutral-400"}`}
+                      className={`h-full rounded-full ${STATUS_BARRA[status] || "bg-neutral-400"}`}
                       style={{
                         width: relatorio.totalAtendimentos
                           ? `${(qtd / relatorio.totalAtendimentos) * 100}%`
@@ -649,20 +930,20 @@ function AbaRelatorios() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
 
-          <div>
-            <h3 className="text-sm font-semibold text-neutral-700">Serviços mais pedidos</h3>
+          <Card className="p-5">
+            <h3 className="text-sm font-semibold text-neutral-900">Serviços mais pedidos</h3>
             {relatorio.servicosMaisPedidos.length === 0 ? (
-              <p className="mt-2 text-xs text-neutral-500">Nenhum atendimento nesse período.</p>
+              <p className="mt-3 text-xs text-neutral-500">Nenhum atendimento nesse período.</p>
             ) : (
-              <div className="mt-2 space-y-1.5">
+              <div className="mt-3 space-y-2">
                 {relatorio.servicosMaisPedidos.map((s) => (
                   <div key={s.nome} className="flex items-center gap-2 text-xs">
                     <span className="w-28 shrink-0 truncate text-neutral-600">{s.nome}</span>
                     <div className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100">
                       <div
-                        className="h-full bg-amber-500"
+                        className="h-full rounded-full bg-amber-500"
                         style={{ width: `${(s.quantidade / maiorContagemServico) * 100}%` }}
                       />
                     </div>
@@ -671,46 +952,209 @@ function AbaRelatorios() {
                 ))}
               </div>
             )}
-          </div>
+          </Card>
+
+          <Card className="p-5">
+            <h3 className="text-sm font-semibold text-neutral-900">Horários de pico</h3>
+            {!relatorio.horariosPico || relatorio.horariosPico.length === 0 ? (
+              <p className="mt-3 text-xs text-neutral-500">Nenhum atendimento nesse período.</p>
+            ) : (
+              <div className="mt-4 flex h-32 items-end gap-1.5">
+                {relatorio.horariosPico.map((h) => (
+                  <div key={h.hora} className="flex flex-1 flex-col items-center gap-1.5">
+                    <span className="text-[11px] font-semibold text-neutral-600">{h.quantidade}</span>
+                    <div
+                      className="w-full rounded-t-md bg-amber-500"
+                      style={{ height: `${Math.max(8, (h.quantidade / maiorContagemHora) * 100)}%` }}
+                    />
+                    <span className="text-[11px] text-neutral-400">{h.hora}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
         </div>
       )}
     </div>
   );
 }
 
-export default function AdminPage() {
-  const { barbeiro } = useAuth();
-  const [aba, setAba] = useState("agenda");
+/* ---------- Fotos do site ---------- */
+function CartaoFoto({ slotInfo, onUpload, onRemover, enviando }) {
+  const src = `${api.defaults.baseURL}/api/imagens/${slotInfo.slot}?t=${slotInfo.atualizadoEm || ""}`;
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex aspect-video items-center justify-center bg-neutral-100">
+        {slotInfo.temImagem ? (
+          <img src={src} alt={slotInfo.label} className="h-full w-full object-cover" />
+        ) : (
+          <IconImage className="h-8 w-8 text-neutral-300" />
+        )}
+      </div>
+      <div className="p-3">
+        <p className="text-xs font-medium text-neutral-700">{slotInfo.label}</p>
+        <div className="mt-2 flex gap-2">
+          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50">
+            {enviando ? <Spinner className="h-3.5 w-3.5" /> : <IconUpload />}
+            {slotInfo.temImagem ? "Trocar" : "Enviar"}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => {
+                const arquivo = e.target.files[0];
+                if (arquivo) onUpload(slotInfo.slot, arquivo);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          {slotInfo.temImagem && (
+            <button
+              onClick={() => onRemover(slotInfo.slot)}
+              className="rounded-lg p-1.5 text-neutral-400 transition hover:bg-red-50 hover:text-red-600"
+              aria-label="Remover imagem"
+            >
+              <IconTrash className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function AbaFotos() {
+  const [slots, setSlots] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [enviandoSlot, setEnviandoSlot] = useState(null);
+  const [erro, setErro] = useState("");
+
+  function carregar() {
+    api.get("/api/imagens").then((res) => setSlots(res.data)).finally(() => setCarregando(false));
+  }
+
+  useEffect(carregar, []);
+
+  async function upload(slot, arquivo) {
+    setErro("");
+    setEnviandoSlot(slot);
+    const formData = new FormData();
+    formData.append("arquivo", arquivo);
+    try {
+      await api.post(`/api/imagens/${slot}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      carregar();
+    } catch (err) {
+      setErro(err.response?.data?.message || "Não foi possível enviar a imagem");
+    } finally {
+      setEnviandoSlot(null);
+    }
+  }
+
+  async function remover(slot) {
+    if (!confirm("Remover esta imagem e voltar ao espaço reservado?")) return;
+    await api.delete(`/api/imagens/${slot}`);
+    carregar();
+  }
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold">Painel do barbeiro</h1>
-      <div className="mt-4 flex gap-1 overflow-x-auto border-b border-neutral-200">
-        {[
-          ["agenda", "Agenda"],
-          ["servicos", "Serviços"],
-          ["horarios", "Horário"],
-          ...(barbeiro?.dono ? [["relatorios", "Relatórios"]] : []),
-          ["conta", "Minha conta"],
-        ].map(([valor, label]) => (
-          <button
-            key={valor}
-            onClick={() => setAba(valor)}
-            className={`shrink-0 border-b-2 px-4 py-2 text-sm font-medium ${
-              aba === valor ? "border-neutral-900 text-neutral-900" : "border-transparent text-neutral-500"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      <p className="text-sm text-neutral-500">
+        As fotos aqui aparecem direto na página inicial do site. JPEG, PNG ou WEBP, até 4MB cada.
+      </p>
+      {erro && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
+
+      {carregando ? (
+        <div className="flex items-center justify-center gap-2 py-14 text-sm text-neutral-500">
+          <Spinner /> Carregando fotos...
+        </div>
+      ) : (
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {slots.map((s) => (
+            <CartaoFoto
+              key={s.slot}
+              slotInfo={s}
+              onUpload={upload}
+              onRemover={remover}
+              enviando={enviandoSlot === s.slot}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- shell ---------- */
+const NAV_ITEMS = [
+  { valor: "agenda", label: "Agenda", icon: IconCalendar },
+  { valor: "servicos", label: "Serviços", icon: IconScissors },
+  { valor: "horarios", label: "Horário", icon: IconClock },
+  { valor: "relatorios", label: "Relatórios", icon: IconChart, donoOnly: true },
+  { valor: "fotos", label: "Fotos do site", icon: IconImage, donoOnly: true },
+  { valor: "conta", label: "Minha conta", icon: IconUser },
+];
+
+export default function AdminPage() {
+  const { barbeiro } = useAuth();
+  const [aba, setAba] = useState("agenda");
+  const itens = NAV_ITEMS.filter((i) => !i.donoOnly || barbeiro?.dono);
+
+  return (
+    <div>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-600">Painel</p>
+          <h1 className="mt-1 text-2xl font-bold text-neutral-900">Olá, {barbeiro?.nome?.split(" ")[0] || "barbeiro"}</h1>
+        </div>
+        {barbeiro?.dono && (
+          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Dono</span>
+        )}
       </div>
 
-      <div className="mt-5">
-        {aba === "agenda" && <AbaAgenda />}
-        {aba === "servicos" && <AbaServicos />}
-        {aba === "horarios" && <AbaHorarios barbeiroId={barbeiro?.id} souDono={barbeiro?.dono} />}
-        {aba === "relatorios" && barbeiro?.dono && <AbaRelatorios />}
-        {aba === "conta" && <AbaConta />}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
+        {/* navegação desktop */}
+        <nav className="hidden lg:block">
+          <div className="sticky top-[73px] space-y-1 rounded-xl border border-neutral-200 bg-white p-2 shadow-sm">
+            {itens.map(({ valor, label, icon: Icon }) => (
+              <button
+                key={valor}
+                onClick={() => setAba(valor)}
+                className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                  aba === valor ? "bg-amber-50 text-amber-800" : "text-neutral-600 hover:bg-neutral-50"
+                }`}
+              >
+                <Icon className={`h-5 w-5 ${aba === valor ? "text-amber-600" : "text-neutral-400"}`} />
+                {label}
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        {/* navegação mobile */}
+        <nav className="flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-1.5 shadow-sm lg:hidden">
+          {itens.map(({ valor, label, icon: Icon }) => (
+            <button
+              key={valor}
+              onClick={() => setAba(valor)}
+              className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                aba === valor ? "bg-amber-500 text-neutral-950" : "text-neutral-600"
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        <div>
+          {aba === "agenda" && <AbaAgenda />}
+          {aba === "servicos" && <AbaServicos />}
+          {aba === "horarios" && <AbaHorarios barbeiroId={barbeiro?.id} souDono={barbeiro?.dono} />}
+          {aba === "relatorios" && barbeiro?.dono && <AbaRelatorios />}
+          {aba === "fotos" && barbeiro?.dono && <AbaFotos />}
+          {aba === "conta" && <AbaConta />}
+        </div>
       </div>
     </div>
   );
