@@ -4,8 +4,11 @@ package br.com.lucaslima.barbearia.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -51,6 +54,17 @@ public class Agendamento {
 
     @Column(name = "motivo_remarcacao")
     private String motivoRemarcacao;
+
+    // preço efetivamente cobrado no momento do agendamento (pode variar por dia da semana); histórico não muda se o preço do serviço mudar depois
+    @Column(name = "preco_cobrado")
+    private BigDecimal precoCobrado;
+
+    @ManyToMany
+    @JoinTable(
+            name = "agendamento_servico_adicional",
+            joinColumns = @JoinColumn(name = "agendamento_id"),
+            inverseJoinColumns = @JoinColumn(name = "servico_id"))
+    private Set<Servico> servicosAdicionais = new HashSet<>();
 
     public Agendamento() {}
 
@@ -128,5 +142,21 @@ public class Agendamento {
 
     public void setMotivoRemarcacao(String motivoRemarcacao) {
         this.motivoRemarcacao = motivoRemarcacao;
+    }
+
+    public BigDecimal getPrecoCobrado() {
+        return precoCobrado;
+    }
+
+    public void setPrecoCobrado(BigDecimal precoCobrado) {
+        this.precoCobrado = precoCobrado;
+    }
+
+    public Set<Servico> getServicosAdicionais() {
+        return servicosAdicionais;
+    }
+
+    public void setServicosAdicionais(Set<Servico> servicosAdicionais) {
+        this.servicosAdicionais = servicosAdicionais != null ? servicosAdicionais : new HashSet<>();
     }
 }

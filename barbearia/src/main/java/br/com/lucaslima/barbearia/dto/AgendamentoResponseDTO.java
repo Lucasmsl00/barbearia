@@ -3,8 +3,10 @@ package br.com.lucaslima.barbearia.dto;
 import br.com.lucaslima.barbearia.model.Agendamento;
 import br.com.lucaslima.barbearia.model.StatusAgendamento;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.UUID;
 
 public class AgendamentoResponseDTO {
@@ -20,6 +22,8 @@ public class AgendamentoResponseDTO {
     private StatusAgendamento status;
     private UUID agendamentoOrigemId;
     private String motivoRemarcacao;
+    private BigDecimal precoCobrado;
+    private List<String> nomesServicosAdicionais;
 
     public AgendamentoResponseDTO() {}
 
@@ -29,6 +33,9 @@ public class AgendamentoResponseDTO {
         this.telefoneCliente = agendamento.getCliente().getTelefone();
         this.nomeServico = agendamento.getServico().getNome();
         this.nomeBarbeiro = agendamento.getBarbeiro().getNome();
+        this.nomesServicosAdicionais = agendamento.getServicosAdicionais().stream()
+                .map(br.com.lucaslima.barbearia.model.Servico::getNome)
+                .toList();
         this.data = agendamento.getData();
         this.horaInicio = agendamento.getHoraInicio();
         this.horaFim = agendamento.getHoraFim();
@@ -37,6 +44,9 @@ public class AgendamentoResponseDTO {
                 ? agendamento.getAgendamentoOrigem().getId()
                 : null;
         this.motivoRemarcacao = agendamento.getMotivoRemarcacao();
+        this.precoCobrado = agendamento.getPrecoCobrado() != null
+                ? agendamento.getPrecoCobrado()
+                : agendamento.getServico().getPreco();
     }
 
     public UUID getId() {
@@ -81,5 +91,13 @@ public class AgendamentoResponseDTO {
 
     public String getMotivoRemarcacao() {
         return motivoRemarcacao;
+    }
+
+    public BigDecimal getPrecoCobrado() {
+        return precoCobrado;
+    }
+
+    public List<String> getNomesServicosAdicionais() {
+        return nomesServicosAdicionais;
     }
 }

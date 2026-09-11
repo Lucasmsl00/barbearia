@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.util.Set;
 
 public class ServicoRequestDTO {
 
@@ -18,6 +20,13 @@ public class ServicoRequestDTO {
     @NotNull(message = "O preço é obrigatório")
     @Positive(message = "O preço deve ser maior que zero")
     private BigDecimal preco;
+
+    @Positive(message = "O preço alternativo deve ser maior que zero")
+    private BigDecimal precoAlternativo;
+
+    private Set<DayOfWeek> diasPrecoAlternativo;
+
+    private boolean adicional;
 
     public String getNome() {
         return nome;
@@ -41,5 +50,29 @@ public class ServicoRequestDTO {
 
     public void setPreco(BigDecimal preco) {
         this.preco = preco;
+    }
+
+    public BigDecimal getPrecoAlternativo() {
+        return precoAlternativo;
+    }
+
+    public void setPrecoAlternativo(BigDecimal precoAlternativo) {
+        this.precoAlternativo = precoAlternativo;
+    }
+
+    public Set<DayOfWeek> getDiasPrecoAlternativo() {
+        return diasPrecoAlternativo;
+    }
+
+    public void setDiasPrecoAlternativo(Set<DayOfWeek> diasPrecoAlternativo) {
+        this.diasPrecoAlternativo = diasPrecoAlternativo;
+    }
+
+    public boolean isAdicional() {
+        return adicional;
+    }
+
+    public void setAdicional(boolean adicional) {
+        this.adicional = adicional;
     }
 }

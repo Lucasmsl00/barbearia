@@ -17,6 +17,10 @@ public class BarbeiroRegisterDTO {
     @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
     private String senha;
 
+    // opcionais: só têm efeito quando quem está criando o acesso já é dono
+    private Boolean dono;
+    private Boolean atendeClientes;
+
     public String getNome() {
         return nome;
     }
@@ -39,5 +43,21 @@ public class BarbeiroRegisterDTO {
 
     public void setSenha(String senha) {
         this.senha = senha;
+    }
+
+    public Boolean getDono() {
+        return dono;
+    }
+
+    public void setDono(Boolean dono) {
+        this.dono = dono;
+    }
+
+    public Boolean getAtendeClientes() {
+        return atendeClientes;
+    }
+
+    public void setAtendeClientes(Boolean atendeClientes) {
+        this.atendeClientes = atendeClientes;
     }
 }

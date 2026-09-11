@@ -130,6 +130,13 @@ function IconTrash({ className = "h-4 w-4" }) {
     </svg>
   );
 }
+function IconPencil({ className = "h-4 w-4" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 function Spinner({ className = "h-4 w-4" }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={`animate-spin ${className}`}>
@@ -162,14 +169,45 @@ function BotaoSecundario({ className = "", ...props }) {
   );
 }
 
-function Input({ label, className = "", ...props }) {
+function IconEye({ visivel, className = "h-4 w-4" }) {
+  return visivel ? (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="2.75" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={className}>
+      <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="2.75" />
+      <path d="M3 3l18 18" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function Input({ label, className = "", type, ...props }) {
+  const [mostrar, setMostrar] = useState(false);
+  const ehSenha = type === "password";
+
   return (
     <label className="block">
       {label && <span className="mb-1 block text-xs font-medium text-neutral-500">{label}</span>}
-      <input
-        {...props}
-        className={`w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 transition focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 ${className}`}
-      />
+      <div className="relative">
+        <input
+          {...props}
+          type={ehSenha && mostrar ? "text" : type}
+          className={`w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 transition focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 ${ehSenha ? "pr-9" : ""} ${className}`}
+        />
+        {ehSenha && (
+          <button
+            type="button"
+            onClick={() => setMostrar((v) => !v)}
+            className="absolute inset-y-0 right-2.5 flex items-center text-neutral-400 transition hover:text-neutral-600"
+            aria-label={mostrar ? "Ocultar senha" : "Mostrar senha"}
+          >
+            <IconEye visivel={mostrar} />
+          </button>
+        )}
+      </div>
     </label>
   );
 }
@@ -286,7 +324,7 @@ const STATUS_ESTILO = {
   REMARCADO: { dot: "bg-neutral-400", pill: "bg-neutral-100 text-neutral-600 ring-1 ring-neutral-200" },
 };
 
-function AbaAgenda() {
+function AbaAgenda({ souDono }) {
   const [data, setData] = useState(hojeISO());
   const [agendamentos, setAgendamentos] = useState([]);
   const [carregando, setCarregando] = useState(false);
@@ -374,7 +412,11 @@ function AbaAgenda() {
                 <div>
                   <p className="font-semibold text-neutral-900">
                     {ag.horaInicio.slice(0, 5)} – {ag.horaFim.slice(0, 5)}
-                    <span className="ml-2 font-normal text-neutral-500">· {ag.nomeServico}</span>
+                    <span className="ml-2 font-normal text-neutral-500">
+                      · {ag.nomeServico}
+                      {ag.nomesServicosAdicionais?.length > 0 && ` + ${ag.nomesServicosAdicionais.join(", ")}`}
+                    </span>
+                    <span className="ml-2 font-normal text-amber-700">R$ {Number(ag.precoCobrado).toFixed(2)}</span>
                   </p>
                   <p className="mt-1 flex items-center gap-1.5 text-sm text-neutral-500">
                     <IconUser className="h-3.5 w-3.5" />
@@ -382,6 +424,12 @@ function AbaAgenda() {
                     <span className="text-neutral-300">·</span>
                     <IconPhone />
                     {ag.telefoneCliente}
+                    {souDono && (
+                      <>
+                        <span className="text-neutral-300">·</span>
+                        <span className="text-neutral-400">{ag.nomeBarbeiro}</span>
+                      </>
+                    )}
                   </p>
                 </div>
                 <span className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${estilo.pill}`}>
@@ -459,11 +507,23 @@ function AbaAgenda() {
 }
 
 /* ---------- Serviços ---------- */
+const DIAS_SEMANA_CURTO = [
+  { valor: "MONDAY", label: "Seg" },
+  { valor: "TUESDAY", label: "Ter" },
+  { valor: "WEDNESDAY", label: "Qua" },
+  { valor: "THURSDAY", label: "Qui" },
+  { valor: "FRIDAY", label: "Sex" },
+  { valor: "SATURDAY", label: "Sáb" },
+  { valor: "SUNDAY", label: "Dom" },
+];
+
+const SERVICO_FORM_VAZIO = { nome: "", duracao: "", preco: "", precoAlternativo: "", dias: [], adicional: false };
+
 function AbaServicos() {
   const [servicos, setServicos] = useState([]);
-  const [nome, setNome] = useState("");
-  const [duracao, setDuracao] = useState("");
-  const [preco, setPreco] = useState("");
+  const [editandoId, setEditandoId] = useState(null);
+  const [form, setForm] = useState(SERVICO_FORM_VAZIO);
+  const [precoVariavel, setPrecoVariavel] = useState(false);
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
 
@@ -473,27 +533,64 @@ function AbaServicos() {
 
   useEffect(carregar, []);
 
-  async function criar(e) {
+  function iniciarEdicao(s) {
+    setEditandoId(s.id);
+    setForm({
+      nome: s.nome,
+      duracao: s.duracaoMinutos,
+      preco: s.preco,
+      precoAlternativo: s.precoAlternativo ?? "",
+      dias: s.diasPrecoAlternativo || [],
+      adicional: !!s.adicional,
+    });
+    setPrecoVariavel(!!s.precoAlternativo);
+    setErro("");
+  }
+
+  function cancelarEdicao() {
+    setEditandoId(null);
+    setForm(SERVICO_FORM_VAZIO);
+    setPrecoVariavel(false);
+    setErro("");
+  }
+
+  function alternarDia(dia) {
+    setForm((f) => ({
+      ...f,
+      dias: f.dias.includes(dia) ? f.dias.filter((d) => d !== dia) : [...f.dias, dia],
+    }));
+  }
+
+  async function salvar(e) {
     e.preventDefault();
     setErro("");
+
+    const payload = {
+      nome: form.nome,
+      duracaoMinutos: Number(form.duracao),
+      preco: Number(form.preco),
+      precoAlternativo: precoVariavel && form.precoAlternativo !== "" ? Number(form.precoAlternativo) : null,
+      diasPrecoAlternativo: precoVariavel ? form.dias : [],
+      adicional: form.adicional,
+    };
+
     try {
-      await api.post("/api/servicos", {
-        nome,
-        duracaoMinutos: Number(duracao),
-        preco: Number(preco),
-      });
-      setNome("");
-      setDuracao("");
-      setPreco("");
+      if (editandoId) {
+        await api.put(`/api/servicos/${editandoId}`, payload);
+      } else {
+        await api.post("/api/servicos", payload);
+      }
+      cancelarEdicao();
       carregar();
     } catch (err) {
-      setErro(err.response?.data?.message || "Não foi possível criar o serviço");
+      setErro(err.response?.data?.message || "Não foi possível salvar o serviço");
     }
   }
 
   async function excluir(id) {
     if (!confirm("Excluir este serviço?")) return;
     await api.delete(`/api/servicos/${id}`);
+    if (editandoId === id) cancelarEdicao();
     carregar();
   }
 
@@ -502,36 +599,92 @@ function AbaServicos() {
       <Card className="p-5">
         <div className="flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
-            <IconPlus />
+            {editandoId ? <IconPencil /> : <IconPlus />}
           </span>
-          <h2 className="text-sm font-semibold text-neutral-900">Novo serviço</h2>
+          <h2 className="text-sm font-semibold text-neutral-900">{editandoId ? "Editar serviço" : "Novo serviço"}</h2>
         </div>
-        <form onSubmit={criar} className="mt-4 flex flex-wrap items-end gap-3">
-          <div className="min-w-[10rem] flex-1">
-            <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} required placeholder="Corte de cabelo" />
+        <form onSubmit={salvar} className="mt-4 space-y-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="min-w-[10rem] flex-1">
+              <Input
+                label="Nome"
+                value={form.nome}
+                onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
+                required
+                placeholder="Corte de cabelo"
+              />
+            </div>
+            <Input
+              label="Duração (min)"
+              type="number"
+              value={form.duracao}
+              onChange={(e) => setForm((f) => ({ ...f, duracao: e.target.value }))}
+              required
+              min="1"
+              className="w-28"
+            />
+            <Input
+              label="Preço (R$)"
+              type="number"
+              step="0.01"
+              value={form.preco}
+              onChange={(e) => setForm((f) => ({ ...f, preco: e.target.value }))}
+              required
+              min="0.01"
+              className="w-28"
+            />
           </div>
-          <Input
-            label="Duração (min)"
-            type="number"
-            value={duracao}
-            onChange={(e) => setDuracao(e.target.value)}
-            required
-            min="1"
-            className="w-28"
+
+          <div className="rounded-lg border border-neutral-200 bg-neutral-50/60 p-3">
+            <Toggle checked={precoVariavel} onChange={setPrecoVariavel} label="Preço diferente em alguns dias da semana" />
+            {precoVariavel && (
+              <div className="mt-3 space-y-3">
+                <Input
+                  label="Preço nesses dias (R$)"
+                  type="number"
+                  step="0.01"
+                  value={form.precoAlternativo}
+                  onChange={(e) => setForm((f) => ({ ...f, precoAlternativo: e.target.value }))}
+                  required={precoVariavel}
+                  min="0.01"
+                  className="w-28"
+                />
+                <div>
+                  <span className="mb-1 block text-xs font-medium text-neutral-500">Quais dias</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {DIAS_SEMANA_CURTO.map((d) => (
+                      <button
+                        type="button"
+                        key={d.valor}
+                        onClick={() => alternarDia(d.valor)}
+                        className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
+                          form.dias.includes(d.valor)
+                            ? "border-amber-500 bg-amber-500/10 text-amber-700"
+                            : "border-neutral-300 bg-white text-neutral-600 hover:border-neutral-400"
+                        }`}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Toggle
+            checked={form.adicional}
+            onChange={(v) => setForm((f) => ({ ...f, adicional: v }))}
+            label="Serviço adicional (extra opcional no agendamento, ex: sobrancelha, pigmento)"
           />
-          <Input
-            label="Preço (R$)"
-            type="number"
-            step="0.01"
-            value={preco}
-            onChange={(e) => setPreco(e.target.value)}
-            required
-            min="0.01"
-            className="w-28"
-          />
-          <BotaoPrimario type="submit">
-            <IconPlus className="h-4 w-4" /> Adicionar
-          </BotaoPrimario>
+
+          <div className="flex flex-wrap gap-2">
+            <BotaoPrimario type="submit">
+              {editandoId ? <IconPencil className="h-4 w-4" /> : <IconPlus className="h-4 w-4" />}
+              {editandoId ? "Salvar alterações" : "Adicionar"}
+            </BotaoPrimario>
+            {editandoId && <BotaoSecundario type="button" onClick={cancelarEdicao}>Cancelar</BotaoSecundario>}
+          </div>
         </form>
         {erro && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erro}</p>}
       </Card>
@@ -543,31 +696,72 @@ function AbaServicos() {
       ) : servicos.length === 0 ? (
         <EmptyState icon={<IconScissors />} title="Nenhum serviço cadastrado" subtitle="Adicione o primeiro serviço acima." />
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {servicos.map((s) => (
-            <Card key={s.id} className="flex items-center justify-between p-4">
-              <div>
-                <p className="font-medium text-neutral-900">{s.nome}</p>
-                <p className="mt-0.5 flex items-center gap-3 text-xs text-neutral-500">
-                  <span className="flex items-center gap-1">
-                    <IconClock className="h-3.5 w-3.5" /> {s.duracaoMinutos} min
-                  </span>
-                  <span className="flex items-center gap-1 font-medium text-amber-700">
-                    <IconMoney className="h-3.5 w-3.5" /> R$ {Number(s.preco).toFixed(2)}
-                  </span>
+        <>
+          <ListaServicos
+            titulo="Serviços principais"
+            servicos={servicos.filter((s) => !s.adicional)}
+            onEditar={iniciarEdicao}
+            onExcluir={excluir}
+          />
+          <ListaServicos
+            titulo="Adicionais"
+            servicos={servicos.filter((s) => s.adicional)}
+            onEditar={iniciarEdicao}
+            onExcluir={excluir}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+function ListaServicos({ titulo, servicos, onEditar, onExcluir }) {
+  if (servicos.length === 0) return null;
+  return (
+    <div>
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400">{titulo}</h3>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {servicos.map((s) => (
+          <Card key={s.id} className="flex items-center justify-between p-4">
+            <div>
+              <p className="font-medium text-neutral-900">{s.nome}</p>
+              <p className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-neutral-500">
+                <span className="flex items-center gap-1">
+                  <IconClock className="h-3.5 w-3.5" /> {s.duracaoMinutos} min
+                </span>
+                <span className="flex items-center gap-1 font-medium text-amber-700">
+                  <IconMoney className="h-3.5 w-3.5" /> R$ {Number(s.preco).toFixed(2)}
+                </span>
+              </p>
+              {s.precoAlternativo && (
+                <p className="mt-1 text-xs text-neutral-500">
+                  R$ {Number(s.precoAlternativo).toFixed(2)} em{" "}
+                  {(s.diasPrecoAlternativo || [])
+                    .map((d) => DIAS_SEMANA_CURTO.find((x) => x.valor === d)?.label)
+                    .filter(Boolean)
+                    .join(", ")}
                 </p>
-              </div>
+              )}
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
               <button
-                onClick={() => excluir(s.id)}
+                onClick={() => onEditar(s)}
+                className="rounded-lg p-2 text-neutral-400 transition hover:bg-amber-50 hover:text-amber-600"
+                aria-label="Editar serviço"
+              >
+                <IconPencil />
+              </button>
+              <button
+                onClick={() => onExcluir(s.id)}
                 className="rounded-lg p-2 text-neutral-400 transition hover:bg-red-50 hover:text-red-600"
                 aria-label="Excluir serviço"
               >
                 <IconTrash />
               </button>
-            </Card>
-          ))}
-        </div>
-      )}
+            </div>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1154,7 +1348,7 @@ export default function AdminPage() {
         </nav>
 
         <div>
-          {aba === "agenda" && <AbaAgenda />}
+          {aba === "agenda" && <AbaAgenda souDono={barbeiro?.dono} />}
           {aba === "servicos" && <AbaServicos />}
           {aba === "horarios" && <AbaHorarios barbeiroId={barbeiro?.id} souDono={barbeiro?.dono} />}
           {aba === "relatorios" && barbeiro?.dono && <AbaRelatorios />}

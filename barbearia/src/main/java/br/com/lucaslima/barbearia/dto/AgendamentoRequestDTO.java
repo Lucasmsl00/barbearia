@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Set;
 import java.util.UUID;
 
 public class AgendamentoRequestDTO {
@@ -28,6 +29,8 @@ public class AgendamentoRequestDTO {
     private LocalTime horaInicio;
 
     private String captchaToken;
+
+    private Set<UUID> servicosAdicionaisIds;
 
     public AgendamentoRequestDTO() {}
 
@@ -85,5 +88,13 @@ public class AgendamentoRequestDTO {
 
     public void setCaptchaToken(String captchaToken) {
         this.captchaToken = captchaToken;
+    }
+
+    public Set<UUID> getServicosAdicionaisIds() {
+        return servicosAdicionaisIds;
+    }
+
+    public void setServicosAdicionaisIds(Set<UUID> servicosAdicionaisIds) {
+        this.servicosAdicionaisIds = servicosAdicionaisIds;
     }
 }

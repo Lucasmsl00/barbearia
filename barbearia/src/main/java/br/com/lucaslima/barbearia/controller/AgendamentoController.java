@@ -4,6 +4,7 @@ import br.com.lucaslima.barbearia.dto.AgendamentoRequestDTO;
 import br.com.lucaslima.barbearia.dto.AgendamentoResponseDTO;
 import br.com.lucaslima.barbearia.dto.RemarcarAgendamentoDTO;
 import br.com.lucaslima.barbearia.model.Agendamento;
+import br.com.lucaslima.barbearia.model.Barbeiro;
 import br.com.lucaslima.barbearia.security.CurrentUserService;
 import br.com.lucaslima.barbearia.service.AgendamentoService;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -34,18 +36,21 @@ public class AgendamentoController {
     public ResponseEntity<List<LocalTime>> buscarHorariosDisponiveis(
             @RequestParam UUID barbeiroId,
             @RequestParam UUID servicoId,
+            @RequestParam(required = false) Set<UUID> adicionaisIds,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
-        List<LocalTime> horarios = agendamentoService.buscarHorariosDisponiveis(barbeiroId, servicoId, data);
+        List<LocalTime> horarios = agendamentoService.buscarHorariosDisponiveis(barbeiroId, servicoId, adicionaisIds, data);
         return ResponseEntity.ok(horarios);
     }
 
-    // protegido: agenda do próprio barbeiro logado, nunca de outro
+    // protegido: agenda do próprio barbeiro logado; o dono vê a agenda de todos
     @GetMapping("/atendimentos")
     public ResponseEntity<List<AgendamentoResponseDTO>> listarAgendamentosPorBarbeiroEData(
             @RequestParam LocalDate data) {
-        UUID barbeiroId = currentUserService.getBarbeiroAutenticado().getId();
-        List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarAgendamentoPorBarbeiroEData(barbeiroId, data)
-                .stream()
+        Barbeiro autenticado = currentUserService.getBarbeiroAutenticado();
+        List<Agendamento> lista = autenticado.isDono()
+                ? agendamentoService.listarAgendamentoPorData(data)
+                : agendamentoService.listarAgendamentoPorBarbeiroEData(autenticado.getId(), data);
+        List<AgendamentoResponseDTO> agendamentos = lista.stream()
                 .map(AgendamentoResponseDTO::new)
                 .toList();
         return ResponseEntity.ok(agendamentos);
@@ -53,15 +58,15 @@ public class AgendamentoController {
 
     @PatchMapping("/{id}/cancelar")
     public ResponseEntity<AgendamentoResponseDTO> cancelarAgendamento(@PathVariable UUID id) {
-        UUID barbeiroId = currentUserService.getBarbeiroAutenticado().getId();
-        Agendamento agendamento = agendamentoService.cancelarAgendamento(id, barbeiroId);
+        Barbeiro autenticado = currentUserService.getBarbeiroAutenticado();
+        Agendamento agendamento = agendamentoService.cancelarAgendamento(id, autenticado);
         return ResponseEntity.ok(new AgendamentoResponseDTO(agendamento));
     }
 
     @PatchMapping("/{id}/concluir")
     public ResponseEntity<AgendamentoResponseDTO> concluirAgendamento(@PathVariable UUID id) {
-        UUID barbeiroId = currentUserService.getBarbeiroAutenticado().getId();
-        Agendamento agendamento = agendamentoService.concluirAgendamento(id, barbeiroId);
+        Barbeiro autenticado = currentUserService.getBarbeiroAutenticado();
+        Agendamento agendamento = agendamentoService.concluirAgendamento(id, autenticado);
         return ResponseEntity.ok(new AgendamentoResponseDTO(agendamento));
     }
 
@@ -69,8 +74,8 @@ public class AgendamentoController {
     public ResponseEntity<AgendamentoResponseDTO> remarcarAgendamento(
             @PathVariable UUID id,
             @Valid @RequestBody RemarcarAgendamentoDTO dto) {
-        UUID barbeiroId = currentUserService.getBarbeiroAutenticado().getId();
-        Agendamento novoAgendamento = agendamentoService.remarcarAgendamento(id, dto.getNovaData(), dto.getNovaHoraInicio(), dto.getMotivo(), barbeiroId);
+        Barbeiro autenticado = currentUserService.getBarbeiroAutenticado();
+        Agendamento novoAgendamento = agendamentoService.remarcarAgendamento(id, dto.getNovaData(), dto.getNovaHoraInicio(), dto.getMotivo(), autenticado);
         return ResponseEntity.ok(new AgendamentoResponseDTO(novoAgendamento));
     }
 

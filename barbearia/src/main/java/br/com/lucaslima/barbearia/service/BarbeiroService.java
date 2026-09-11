@@ -27,7 +27,9 @@ public class BarbeiroService {
     }
 
     public List<Barbeiro> listarBarbeiros() {
-        return barbeiroRepository.findAll();
+        return barbeiroRepository.findAll().stream()
+                .filter(Barbeiro::isAtendeClientes)
+                .toList();
     }
 
     public Barbeiro registrar(BarbeiroRegisterDTO dto) {
@@ -47,7 +49,8 @@ public class BarbeiroService {
         barbeiro.setNome(dto.getNome());
         barbeiro.setEmail(dto.getEmail());
         barbeiro.setSenhaHash(passwordEncoder.encode(dto.getSenha()));
-        barbeiro.setDono(primeiroCadastro);
+        barbeiro.setDono(primeiroCadastro || Boolean.TRUE.equals(dto.getDono()));
+        barbeiro.setAtendeClientes(primeiroCadastro || !Boolean.FALSE.equals(dto.getAtendeClientes()));
 
         return barbeiroRepository.save(barbeiro);
     }

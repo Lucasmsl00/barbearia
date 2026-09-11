@@ -10,12 +10,14 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -43,7 +45,7 @@ public class AgendamentoService {
         this.recaptchaService = recaptchaService;
     }
 
-    public List<LocalTime> buscarHorariosDisponiveis(UUID barbeiroId, UUID servicoId, LocalDate data) {
+    public List<LocalTime> buscarHorariosDisponiveis(UUID barbeiroId, UUID servicoId, Set<UUID> adicionaisIds, LocalDate data) {
         if (foraDaSemanaAtual(data)) {
             return List.of();
         }
@@ -52,6 +54,9 @@ public class AgendamentoService {
 
         Servico servico = servicoRepository.findById(servicoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
+
+        List<Servico> adicionais = buscarAdicionais(adicionaisIds);
+        int duracaoTotal = duracaoTotal(servico, adicionais);
 
         Optional<HorarioFuncionamento> horarioOpt = horarioFuncionamentoRepository
                 .findByBarbeiroIdAndDiaSemana(barbeiroId, diaSemana);
@@ -70,7 +75,7 @@ public class AgendamentoService {
         List<LocalTime> horariosDisponiveis = new ArrayList<>();
 
         while (horaAtual.isBefore(horaFechamento)) {
-            LocalTime horaFimServico = horaAtual.plusMinutes(servico.getDuracaoMinutos());
+            LocalTime horaFimServico = horaAtual.plusMinutes(duracaoTotal);
 
             if (horaFimServico.isAfter(horaFechamento)) {
                 break;
@@ -108,7 +113,9 @@ public class AgendamentoService {
         Servico servico = servicoRepository.findById(dto.getServicoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
 
-        LocalTime horaFim = dto.getHoraInicio().plusMinutes(servico.getDuracaoMinutos());
+        List<Servico> adicionais = buscarAdicionais(dto.getServicosAdicionaisIds());
+
+        LocalTime horaFim = dto.getHoraInicio().plusMinutes(duracaoTotal(servico, adicionais));
 
         validarDisponibilidade(dto.getBarbeiroId(), dto.getData(), dto.getHoraInicio(), horaFim, null);
 
@@ -116,10 +123,12 @@ public class AgendamentoService {
         agendamento.setCliente(cliente);
         agendamento.setBarbeiro(barbeiro);
         agendamento.setServico(servico);
+        agendamento.setServicosAdicionais(Set.copyOf(adicionais));
         agendamento.setData(dto.getData());
         agendamento.setHoraInicio(dto.getHoraInicio());
         agendamento.setHoraFim(horaFim);
         agendamento.setStatus(StatusAgendamento.PENDENTE);
+        agendamento.setPrecoCobrado(precoTotal(servico, adicionais, dto.getData()));
 
         return agendamentoRepository.save(agendamento);
     }
@@ -128,12 +137,16 @@ public class AgendamentoService {
         return agendamentoRepository.findByBarbeiroIdAndData(barbeiroId, data);
     }
 
+    public List<Agendamento> listarAgendamentoPorData(LocalDate data) {
+        return agendamentoRepository.findByData(data);
+    }
+
     @Transactional
-    public Agendamento cancelarAgendamento(UUID id, UUID barbeiroAutenticadoId) {
+    public Agendamento cancelarAgendamento(UUID id, Barbeiro barbeiroAutenticado) {
         Agendamento agendamento = agendamentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
 
-        verificarDono(agendamento, barbeiroAutenticadoId);
+        verificarDono(agendamento, barbeiroAutenticado);
 
         agendamento.setStatus(StatusAgendamento.CANCELADO);
 
@@ -141,18 +154,19 @@ public class AgendamentoService {
     }
 
     @Transactional
-    public Agendamento remarcarAgendamento(UUID idAntigo, LocalDate novaData, LocalTime novaHoraInicio, String motivo, UUID barbeiroAutenticadoId) {
+    public Agendamento remarcarAgendamento(UUID idAntigo, LocalDate novaData, LocalTime novaHoraInicio, String motivo, Barbeiro barbeiroAutenticado) {
         Agendamento agendamentoAntigo = agendamentoRepository.findById(idAntigo)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
 
-        verificarDono(agendamentoAntigo, barbeiroAutenticadoId);
+        verificarDono(agendamentoAntigo, barbeiroAutenticado);
 
         if (agendamentoAntigo.getStatus() == StatusAgendamento.CANCELADO) {
             throw new BusinessException("Não é possível remarcar um agendamento cancelado");
         }
 
         Servico servico = agendamentoAntigo.getServico();
-        LocalTime novaHoraFim = novaHoraInicio.plusMinutes(servico.getDuracaoMinutos());
+        List<Servico> adicionais = List.copyOf(agendamentoAntigo.getServicosAdicionais());
+        LocalTime novaHoraFim = novaHoraInicio.plusMinutes(duracaoTotal(servico, adicionais));
 
         validarDisponibilidade(agendamentoAntigo.getBarbeiro().getId(), novaData, novaHoraInicio, novaHoraFim, idAntigo);
 
@@ -164,21 +178,23 @@ public class AgendamentoService {
         novoAgendamento.setCliente(agendamentoAntigo.getCliente());
         novoAgendamento.setBarbeiro(agendamentoAntigo.getBarbeiro());
         novoAgendamento.setServico(servico);
+        novoAgendamento.setServicosAdicionais(Set.copyOf(adicionais));
         novoAgendamento.setData(novaData);
         novoAgendamento.setHoraInicio(novaHoraInicio);
         novoAgendamento.setHoraFim(novaHoraFim);
         novoAgendamento.setStatus(StatusAgendamento.PENDENTE);
         novoAgendamento.setAgendamentoOrigem(agendamentoAntigo);
+        novoAgendamento.setPrecoCobrado(precoTotal(servico, adicionais, novaData));
 
         return agendamentoRepository.save(novoAgendamento);
     }
 
     @Transactional
-    public Agendamento concluirAgendamento(UUID id, UUID barbeiroAutenticadoId) {
+    public Agendamento concluirAgendamento(UUID id, Barbeiro barbeiroAutenticado) {
         Agendamento agendamento = agendamentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
 
-        verificarDono(agendamento, barbeiroAutenticadoId);
+        verificarDono(agendamento, barbeiroAutenticado);
 
         if (agendamento.getStatus() == StatusAgendamento.CANCELADO || agendamento.getStatus() == StatusAgendamento.REMARCADO) {
             throw new BusinessException("Não é possível concluir um agendamento cancelado ou remarcado");
@@ -189,8 +205,35 @@ public class AgendamentoService {
         return agendamentoRepository.save(agendamento);
     }
 
-    private void verificarDono(Agendamento agendamento, UUID barbeiroAutenticadoId) {
-        if (!agendamento.getBarbeiro().getId().equals(barbeiroAutenticadoId)) {
+    private List<Servico> buscarAdicionais(Set<UUID> adicionaisIds) {
+        if (adicionaisIds == null || adicionaisIds.isEmpty()) {
+            return List.of();
+        }
+        return servicoRepository.findAllById(adicionaisIds);
+    }
+
+    private int duracaoTotal(Servico servico, List<Servico> adicionais) {
+        int total = servico.getDuracaoMinutos();
+        for (Servico adicional : adicionais) {
+            total += adicional.getDuracaoMinutos();
+        }
+        return total;
+    }
+
+    private BigDecimal precoTotal(Servico servico, List<Servico> adicionais, LocalDate data) {
+        BigDecimal total = servico.precoParaData(data);
+        for (Servico adicional : adicionais) {
+            total = total.add(adicional.precoParaData(data));
+        }
+        return total;
+    }
+
+    // dono pode gerenciar o agendamento de qualquer barbeiro; um barbeiro comum só mexe nos próprios
+    private void verificarDono(Agendamento agendamento, Barbeiro barbeiroAutenticado) {
+        if (barbeiroAutenticado.isDono()) {
+            return;
+        }
+        if (!agendamento.getBarbeiro().getId().equals(barbeiroAutenticado.getId())) {
             throw new AccessDeniedException("Este agendamento não pertence a este barbeiro");
         }
     }

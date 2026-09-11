@@ -18,6 +18,20 @@ function fimDaSemanaISO() {
   return local.toISOString().slice(0, 10);
 }
 
+const DIAS_ORDEM = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+
+function diaSemanaISO(dataISO) {
+  return DIAS_ORDEM[new Date(dataISO + "T00:00:00").getDay()];
+}
+
+function precoEfetivo(servico, dataISO) {
+  if (!servico) return null;
+  if (servico.precoAlternativo != null && dataISO && servico.diasPrecoAlternativo?.includes(diaSemanaISO(dataISO))) {
+    return servico.precoAlternativo;
+  }
+  return servico.preco;
+}
+
 function IconClock({ className = "h-3.5 w-3.5" }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
@@ -61,6 +75,7 @@ export default function AgendarPage() {
   const [servicos, setServicos] = useState([]);
   const [barbeiroId, setBarbeiroId] = useState("");
   const [servicoId, setServicoId] = useState("");
+  const [adicionaisIds, setAdicionaisIds] = useState([]);
   const [data, setData] = useState(hojeISO());
   const [horarios, setHorarios] = useState([]);
   const [horaSelecionada, setHoraSelecionada] = useState("");
@@ -73,6 +88,17 @@ export default function AgendarPage() {
 
   const captchaRef = useRef(null);
   const captchaWidgetId = useRef(null);
+  const servicosPrincipais = servicos.filter((s) => !s.adicional);
+  const servicosAdicionaisDisponiveis = servicos.filter((s) => s.adicional);
+  const servicoSelecionado = servicos.find((s) => s.id === servicoId) || null;
+  const adicionaisSelecionados = servicos.filter((s) => adicionaisIds.includes(s.id));
+  const precoTotalAtual =
+    (servicoSelecionado ? Number(precoEfetivo(servicoSelecionado, data)) : 0) +
+    adicionaisSelecionados.reduce((soma, s) => soma + Number(precoEfetivo(s, data)), 0);
+
+  function alternarAdicional(id) {
+    setAdicionaisIds((atual) => (atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id]));
+  }
 
   // renderiza o widget do reCAPTCHA assim que ele aparece na tela (depois que o cliente escolhe o horário)
   useEffect(() => {
@@ -97,6 +123,10 @@ export default function AgendarPage() {
   }, [horaSelecionada]);
 
   useEffect(() => {
+    setAdicionaisIds([]);
+  }, [servicoId]);
+
+  useEffect(() => {
     api.get("/api/barbeiros").then((res) => {
       setBarbeiros(res.data);
       if (res.data.length === 1) setBarbeiroId(res.data[0].id);
@@ -113,12 +143,12 @@ export default function AgendarPage() {
     setCarregandoHorarios(true);
     api
       .get("/api/agendamentos/horarios-disponiveis", {
-        params: { barbeiroId, servicoId, data },
+        params: { barbeiroId, servicoId, adicionaisIds: adicionaisIds.join(",") || undefined, data },
       })
       .then((res) => setHorarios(res.data))
       .catch(() => setHorarios([]))
       .finally(() => setCarregandoHorarios(false));
-  }, [barbeiroId, servicoId, data]);
+  }, [barbeiroId, servicoId, adicionaisIds, data]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -138,6 +168,7 @@ export default function AgendarPage() {
         telefoneCliente,
         barbeiroId,
         servicoId,
+        servicosAdicionaisIds: adicionaisIds,
         data,
         horaInicio: horaSelecionada,
         captchaToken,
@@ -162,6 +193,9 @@ export default function AgendarPage() {
           <p className="mt-3 text-sm text-neutral-400">
             <span className="font-medium text-neutral-200">{sucesso.nomeServico}</span> com {sucesso.nomeBarbeiro}
           </p>
+          {sucesso.nomesServicosAdicionais?.length > 0 && (
+            <p className="mt-1 text-xs text-neutral-500">+ {sucesso.nomesServicosAdicionais.join(", ")}</p>
+          )}
           <p className="mt-1 text-lg font-semibold text-amber-500">
             {new Date(sucesso.data + "T00:00:00").toLocaleDateString("pt-BR", {
               weekday: "long",
@@ -170,6 +204,7 @@ export default function AgendarPage() {
             })}{" "}
             às {sucesso.horaInicio.slice(0, 5)}
           </p>
+          <p className="mt-1 text-sm text-neutral-400">R$ {Number(sucesso.precoCobrado).toFixed(2)}</p>
 
           <p className="mt-4 rounded-lg border border-neutral-800 bg-neutral-900/60 px-3 py-2.5 text-xs text-neutral-400">
             Precisa cancelar ou remarcar? Entre em contato pelo{" "}
@@ -188,6 +223,7 @@ export default function AgendarPage() {
             onClick={() => {
               setSucesso(null);
               setHoraSelecionada("");
+              setAdicionaisIds([]);
               setNomeCliente("");
               setTelefoneCliente("");
               captchaWidgetId.current = null;
@@ -246,11 +282,11 @@ export default function AgendarPage() {
 
           <div className="space-y-3">
             <StepLabel n={2}>Escolha o serviço</StepLabel>
-            {servicos.length === 0 ? (
+            {servicosPrincipais.length === 0 ? (
               <p className="text-sm text-neutral-500">Carregando serviços...</p>
             ) : (
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                {servicos.map((s) => (
+                {servicosPrincipais.map((s) => (
                   <button
                     type="button"
                     key={s.id}
@@ -266,17 +302,45 @@ export default function AgendarPage() {
                       <span className="flex items-center gap-1">
                         <IconClock /> {s.duracaoMinutos} min
                       </span>
-                      <span className="text-base font-bold text-amber-500">R$ {Number(s.preco).toFixed(2)}</span>
+                      <span className="text-base font-bold text-amber-500">
+                        R$ {Number(precoEfetivo(s, data)).toFixed(2)}
+                      </span>
                     </div>
+                    {s.precoAlternativo != null && (
+                      <p className="mt-1 text-[11px] text-neutral-500">O preço pode variar conforme o dia escolhido.</p>
+                    )}
                   </button>
                 ))}
               </div>
             )}
           </div>
 
+          {servicoId && servicosAdicionaisDisponiveis.length > 0 && (
+            <div className="space-y-3">
+              <StepLabel n={3}>Adicionais (opcional)</StepLabel>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {servicosAdicionaisDisponiveis.map((s) => (
+                  <button
+                    type="button"
+                    key={s.id}
+                    onClick={() => alternarAdicional(s.id)}
+                    className={`flex items-center justify-between rounded-lg border px-3.5 py-2.5 text-left text-sm transition ${
+                      adicionaisIds.includes(s.id)
+                        ? "border-amber-500 bg-amber-500/10 text-amber-400"
+                        : "border-neutral-800 bg-neutral-900/60 text-neutral-300 hover:border-neutral-700"
+                    }`}
+                  >
+                    <span>{s.nome}</span>
+                    <span className="font-semibold">R$ {Number(precoEfetivo(s, data)).toFixed(2)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {barbeiroId && servicoId && (
             <div className="space-y-3">
-              <StepLabel n={3}>Escolha o dia e o horário</StepLabel>
+              <StepLabel n={4}>Escolha o dia e o horário</StepLabel>
               <input
                 type="date"
                 value={data}
@@ -287,6 +351,7 @@ export default function AgendarPage() {
                 className={fieldCls}
               />
               <p className="text-xs text-neutral-500">Agendamentos disponíveis somente até este sábado.</p>
+              <p className="text-xs text-amber-500">Total: R$ {precoTotalAtual.toFixed(2)}</p>
 
               {carregandoHorarios ? (
                 <p className="text-sm text-neutral-500">Carregando horários...</p>
@@ -317,7 +382,7 @@ export default function AgendarPage() {
 
           {horaSelecionada && (
             <div className="space-y-3">
-              <StepLabel n={4}>Seus dados</StepLabel>
+              <StepLabel n={5}>Seus dados</StepLabel>
               <input
                 type="text"
                 value={nomeCliente}

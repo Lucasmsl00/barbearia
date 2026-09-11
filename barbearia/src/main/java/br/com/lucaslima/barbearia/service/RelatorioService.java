@@ -29,8 +29,15 @@ public class RelatorioService {
     }
 
     public RelatorioResponseDTO gerar(UUID barbeiroId, LocalDate inicio, LocalDate fim) {
-        List<Agendamento> agendamentos = agendamentoRepository.findByBarbeiroIdAndDataBetween(barbeiroId, inicio, fim);
+        return montar(agendamentoRepository.findByBarbeiroIdAndDataBetween(barbeiroId, inicio, fim), inicio, fim);
+    }
 
+    // visão do dono: agrega os atendimentos de todos os barbeiros no período
+    public RelatorioResponseDTO gerarGeral(LocalDate inicio, LocalDate fim) {
+        return montar(agendamentoRepository.findByDataBetween(inicio, fim), inicio, fim);
+    }
+
+    private RelatorioResponseDTO montar(List<Agendamento> agendamentos, LocalDate inicio, LocalDate fim) {
         long total = agendamentos.size();
 
         Map<String, Long> porStatus = new LinkedHashMap<>();
@@ -41,7 +48,7 @@ public class RelatorioService {
 
         BigDecimal faturamento = agendamentos.stream()
                 .filter(a -> a.getStatus() == StatusAgendamento.CONCLUIDO)
-                .map(a -> a.getServico().getPreco())
+                .map(a -> a.getPrecoCobrado() != null ? a.getPrecoCobrado() : a.getServico().getPreco())
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(2, RoundingMode.HALF_UP);
 

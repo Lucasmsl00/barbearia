@@ -24,6 +24,9 @@ public class Barbeiro {
     @Column(nullable = false)
     private boolean dono;
 
+    @Column(name = "atende_clientes", nullable = false)
+    private boolean atendeClientes = true;
+
     public Barbeiro() {
     }
 
@@ -61,5 +64,13 @@ public class Barbeiro {
 
     public void setDono(boolean dono) {
         this.dono = dono;
+    }
+
+    public boolean isAtendeClientes() {
+        return atendeClientes;
+    }
+
+    public void setAtendeClientes(boolean atendeClientes) {
+        this.atendeClientes = atendeClientes;
     }
 }

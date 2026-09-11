@@ -14,5 +14,9 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, UUID> 
 
     List<Agendamento> findByBarbeiroIdAndData(UUID barbeiroId, LocalDate data);
 
+    List<Agendamento> findByData(LocalDate data);
+
     List<Agendamento> findByBarbeiroIdAndDataBetween(UUID barbeiroId, LocalDate dataInicio, LocalDate dataFim);
+
+    List<Agendamento> findByDataBetween(LocalDate dataInicio, LocalDate dataFim);
 }

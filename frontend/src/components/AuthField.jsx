@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export function IconEnvelope() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-4 w-4">
@@ -25,7 +27,25 @@ export function IconUser() {
   );
 }
 
+function IconEye({ visivel }) {
+  return visivel ? (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-4 w-4">
+      <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="2.75" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-4 w-4">
+      <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="2.75" />
+      <path d="M3 3l18 18" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function AuthField({ icon, label, ...props }) {
+  const [mostrar, setMostrar] = useState(false);
+  const ehSenha = props.type === "password";
+
   return (
     <div>
       <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-neutral-500">{label}</label>
@@ -33,8 +53,19 @@ export default function AuthField({ icon, label, ...props }) {
         <span className="text-neutral-500">{icon}</span>
         <input
           {...props}
+          type={ehSenha && mostrar ? "text" : props.type}
           className="w-full bg-transparent text-sm text-white placeholder:text-neutral-600 focus:outline-none"
         />
+        {ehSenha && (
+          <button
+            type="button"
+            onClick={() => setMostrar((v) => !v)}
+            className="text-neutral-500 transition hover:text-neutral-300"
+            aria-label={mostrar ? "Ocultar senha" : "Mostrar senha"}
+          >
+            <IconEye visivel={mostrar} />
+          </button>
+        )}
       </div>
     </div>
   );
